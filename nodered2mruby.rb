@@ -51,7 +51,7 @@ def generate_node(node)
   when "tab"
   # pass
   else
-    puts "Not supported #{node[:type]}"
+    puts "# #{node[:type]} is not supported, #{node}"
   end
 end
 
