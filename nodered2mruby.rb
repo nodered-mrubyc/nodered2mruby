@@ -37,6 +37,16 @@ def gen_debug(node)
 end
 
 
+def gen_led(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :gpio,
+          :targetPort => node[:targetPort],
+          :targetPort_mode => node[:targetPort_mode],
+          :wires => idarray2symarray(node[:wires])
+         }
+  $nodes << data
+end
+
 
 def generate_node(node)
   case node[:type] 
@@ -44,6 +54,8 @@ def generate_node(node)
     gen_inject(node)
   when "debug"
     gen_debug(node)
+  when "LED"
+    gen_led(node)
   when "info"
   # nothing
   when "comment"
@@ -82,6 +94,9 @@ end
 #
 
 # header
+puts "#"
+puts "# by nodered2mruby code generator"
+puts "#"
 
 # data
 puts "injects = #{$injects.pretty_inspect}"

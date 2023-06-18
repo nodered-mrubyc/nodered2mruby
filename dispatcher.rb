@@ -1,5 +1,13 @@
 #
-# Initialize Inject
+# node dependent implementation
+#
+def process_node_gpio(node, msg)
+  puts "node=#{node}"
+end
+
+
+#
+# inject 
 #
 def process_inject(inject)
   inject[:wires].each { |node|
@@ -8,12 +16,17 @@ def process_inject(inject)
   }
 end
 
+#
+# node
+#
 def process_node(node,msg)
   case node[:type]
   when :debug
     puts msg[:payload]
+  when :gpio
+    process_node_gpio node, msg
   else
-    puts "Not supported"
+    puts "#{node[:type]} is not supported"
   end
 end
 
