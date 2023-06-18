@@ -35,18 +35,19 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "1",
-        "payloadType": "num",
-        "x": 190,
+        "payload": "",
+        "payloadType": "date",
+        "x": 230,
         "y": 280,
         "wires": [
             [
-                "04cc6f538b95d5c8"
+                "c4a5e76ab307e42e",
+                "b89b541f63768b32"
             ]
         ]
     },
     {
-        "id": "04cc6f538b95d5c8",
+        "id": "c4a5e76ab307e42e",
         "type": "debug",
         "z": "f6f2187d.f17ca8",
         "name": "debug 1",
@@ -57,8 +58,24 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 600,
-        "y": 320,
+        "x": 560,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "b89b541f63768b32",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 360,
         "wires": []
     }
 ]
