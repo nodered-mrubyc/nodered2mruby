@@ -47,6 +47,19 @@ def gen_led(node)
   $nodes << data
 end
 
+def gen_parameter(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :parameter,
+          :value_name => node[:value_name],
+          :data_type => node[:data_type],
+          :para => node[:para],
+          :type4array => node[:type4array],
+          :value4array => node[:value4array],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
 
 def generate_node(node)
   case node[:type] 
@@ -56,6 +69,8 @@ def generate_node(node)
     gen_debug(node)
   when "LED"
     gen_led(node)
+  when "Parameter-Set"
+    gen_parameter(node)
   when "info"
   # nothing
   when "comment"
