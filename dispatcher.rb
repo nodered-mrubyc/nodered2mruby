@@ -25,6 +25,8 @@ def process_node(node,msg)
     puts msg[:payload]
   when :gpio
     process_node_gpio node, msg
+  when :parameter
+    process_node_parameter node, msg
   else
     puts "#{node[:type]} is not supported"
   end
@@ -40,6 +42,7 @@ LoopInterval = 0.05
 
 $queue = []
 
+#ƒm[ƒh‚Ìˆ—
 while true do
   # process inject
   injects.each_index { |idx|
