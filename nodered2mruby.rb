@@ -18,6 +18,7 @@ def idarray2symarray(ary)
   return ary.map { |id| id2sym(id) }
 end
 
+#inject node
 def gen_inject(node)
   data = {:id => id2sym(node[:id]),
           :delay => node[:onceDelay].to_f,
@@ -28,6 +29,7 @@ def gen_inject(node)
   $injects << data
 end
 
+#debug node
 def gen_debug(node)
   data = {:id => id2sym(node[:id]),
           :type => :debug,
@@ -36,7 +38,7 @@ def gen_debug(node)
   $nodes << data
 end
 
-
+#LED-node
 def gen_led(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpio,
@@ -47,6 +49,39 @@ def gen_led(node)
   $nodes << data
 end
 
+#GPIO-Read node
+def gen_gpioread(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :gpioread,
+          :ReadType => node[:ReadType],
+          :GPIOType => node[:GPIOType],
+          :targetPort_digital => node[:targetPort_digital],
+          :targetPort_ADC => node[targetPort_ADC],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
+#GPIO-Write node
+def gen_gpioread(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :gpiowrite,
+          :WriteType => node[:WriteType],
+          :GPIOType => node[:GPIOType],
+          :targetPort_digital => node[:targetPort_digital],
+          :targetPort_mode => node[:targetPort_mode],
+          :targetPort_PWM => node[:targetPort_PWM],
+          :PWM_num => node[:PWM_num],
+          :cycle => node[:cycle],
+          :double => node[:doube],
+          :time => node[:time],
+          :rate => node[:rate],
+          :wires => idarray2symarray(node[:wires])
+         }
+  $nodes << data
+end
+
+#Parameter node
 def gen_parameter(node)
   data = {:id => id2sym(node[:id]),
           :type => :parameter,

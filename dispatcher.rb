@@ -25,6 +25,10 @@ def process_node(node,msg)
     puts msg[:payload]
   when :gpio
     process_node_gpio node, msg
+  when :gpioread
+    process_node_gpioread node, msg
+  when :gpiowrite
+    process_node_gpiowrite node, msg  
   when :parameter
     process_node_parameter node, msg
   else
@@ -42,7 +46,7 @@ LoopInterval = 0.05
 
 $queue = []
 
-#ÉmÅ[ÉhÇÃèàóù
+#process node
 while true do
   # process inject
   injects.each_index { |idx|
