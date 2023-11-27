@@ -1,0 +1,87 @@
+[
+    {
+        "id": "fe95cee2738fe3ee",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 500,
+        "wires": [
+            [
+                "d7c616210fab3361"
+            ]
+        ]
+    },
+    {
+        "id": "cded069052955602",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "赤LED",
+        "LEDtype": "GPIO",
+        "onBoardLED": "6",
+        "targetPort": "1",
+        "targetPort_mode": "1",
+        "onBoard_mode": "0",
+        "x": 650,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "d7c616210fab3361",
+        "type": "GPIO-Read",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "ReadType": "digital_read",
+        "GPIOType": "read",
+        "targetPort_digital": "1",
+        "targetPort_ADC": "",
+        "x": 350,
+        "y": 500,
+        "wires": [
+            [
+                "dfcbf0b678bbc564"
+            ]
+        ]
+    },
+    {
+        "id": "dfcbf0b678bbc564",
+        "type": "switch",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 510,
+        "y": 500,
+        "wires": [
+            [
+                "cded069052955602"
+            ]
+        ]
+    }
+]
