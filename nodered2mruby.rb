@@ -38,6 +38,18 @@ def gen_debug(node)
   $nodes << data
 end
 
+#switch-node
+def gen_switch(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :switch,
+          :payload => node[:payload],
+          :property => node[:property],
+          :outputs => node[:outputs],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
 #LED-node
 def gen_led(node)
   data = {:id => id2sym(node[:id]),
@@ -49,14 +61,24 @@ def gen_led(node)
   $nodes << data
 end
 
+#Constant node
+def gen_Constant(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :Constant,
+          :C => node[:C],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
 #GPIO-Read node
 def gen_gpioread(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpioread,
-          :ReadType => node[:ReadType],
+          :readtype => [:ReadType],
           :GPIOType => node[:GPIOType],
-          :targetPort_digital => node[:targetPort_digital],
-          :targetPort_ADC => node[targetPort_ADC],
+          :digital => node[:targetPort_digital],
+          :ADC => node[:targetPort_ADC],
           :wires => idarray2symarray(node[:wires][0])
          }
   $nodes << data

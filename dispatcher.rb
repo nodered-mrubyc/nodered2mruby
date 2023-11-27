@@ -23,8 +23,12 @@ def process_node(node,msg)
   case node[:type]
   when :debug
     puts msg[:payload]
+  when :switch
+    process_node_switch node, msg
   when :gpio
     process_node_gpio node, msg
+  when :Constant
+    process_node_Constant node, msg
   when :gpioread
     process_node_gpioread node, msg
   when :gpiowrite
