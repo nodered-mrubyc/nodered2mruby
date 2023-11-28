@@ -54,6 +54,8 @@ end
 def gen_led(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpio,
+          :onBoardLED => node[:onBoardLED],
+          :onBoard_mode => node[:onBoard_mode],
           :targetPort => node[:targetPort],
           :targetPort_mode => node[:targetPort_mode],
           :wires => idarray2symarray(node[:wires])
