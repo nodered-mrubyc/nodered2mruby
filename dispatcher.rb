@@ -27,8 +27,8 @@ def process_node(node,msg)
     process_node_switch node, msg
   when :gpio
     process_node_gpio node, msg
-  when :Constant
-    process_node_Constant node, msg
+  when :constant
+    process_node_constant node, msg
   when :gpioread
     process_node_gpioread node, msg
   when :gpiowrite

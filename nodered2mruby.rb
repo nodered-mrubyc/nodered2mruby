@@ -44,6 +44,7 @@ def gen_switch(node)
           :type => :switch,
           :payload => node[:payload],
           :property => node[:property],
+          :propertyType => node[:propertyType],
           :outputs => node[:outputs],
           :wires => idarray2symarray(node[:wires][0])
          }
@@ -64,9 +65,9 @@ def gen_led(node)
 end
 
 #Constant node
-def gen_Constant(node)
+def gen_constant(node)
   data = {:id => id2sym(node[:id]),
-          :type => :Constant,
+          :type => :constant,
           :C => node[:C],
           :wires => idarray2symarray(node[:wires][0])
          }
@@ -77,7 +78,7 @@ end
 def gen_gpioread(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpioread,
-          :readtype => [:ReadType],
+          :readtype => node[:ReadType],
           :GPIOType => node[:GPIOType],
           :digital => node[:targetPort_digital],
           :ADC => node[:targetPort_ADC],
@@ -87,7 +88,7 @@ def gen_gpioread(node)
 end
 
 #GPIO-Write node
-def gen_gpioread(node)
+def gen_gpiowrite(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpiowrite,
           :WriteType => node[:WriteType],
@@ -126,6 +127,14 @@ def generate_node(node)
     gen_inject(node)
   when "debug"
     gen_debug(node)
+  when "switch"
+    gen_switch(node)
+  when "Constant"
+    gen_constant(node)
+  when "GPIO-Read"
+    gen_gpioread(node)
+  when "GPIO-Write-1"
+    gen_gpiowrite(node)
   when "LED"
     gen_led(node)
   when "Parameter-Set"
