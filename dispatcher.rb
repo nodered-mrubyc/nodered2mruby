@@ -32,9 +32,13 @@ def process_node(node,msg)
   when :gpioread
     process_node_gpioread node, msg
   when :gpiowrite
-    process_node_gpiowrite node, msg  
+    process_node_gpiowrite node, msg
+  when :i2c
+    process_node_i2c node, msg  
   when :parameter
     process_node_parameter node, msg
+  when :function_code
+    process_node_function_code node, msg
   else
     puts "#{node[:type]} is not supported"
   end

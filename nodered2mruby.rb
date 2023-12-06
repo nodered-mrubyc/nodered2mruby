@@ -106,6 +106,17 @@ def gen_gpiowrite(node)
   $nodes << data
 end
 
+#I2C node
+def gen_i2c(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :i2c,
+          :ad => node[:ad],
+          :rules => node[:rules],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
 #Parameter node
 def gen_parameter(node)
   data = {:id => id2sym(node[:id]),
@@ -120,6 +131,15 @@ def gen_parameter(node)
   $nodes << data
 end
 
+#function-Code
+def gen_function_code(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :function_code,
+          :func => node[:func],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
 
 def generate_node(node)
   case node[:type] 
@@ -135,10 +155,14 @@ def generate_node(node)
     gen_gpioread(node)
   when "GPIO-Write-1"
     gen_gpiowrite(node)
+  when "I2C"
+    gen_i2c(node)
   when "LED"
     gen_led(node)
   when "Parameter-Set"
     gen_parameter(node)
+  when "function-Code"
+    gen_function_code(node)
   when "info"
   # nothing
   when "comment"
