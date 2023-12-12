@@ -23,8 +23,22 @@ def process_node(node,msg)
   case node[:type]
   when :debug
     puts msg[:payload]
+  when :switch
+    process_node_switch node, msg
   when :gpio
     process_node_gpio node, msg
+  when :constant
+    process_node_constant node, msg
+  when :gpioread
+    process_node_gpioread node, msg
+  when :gpiowrite
+    process_node_gpiowrite node, msg
+  when :i2c
+    process_node_i2c node, msg  
+  when :parameter
+    process_node_parameter node, msg
+  when :function_code
+    process_node_function_code node, msg
   else
     puts "#{node[:type]} is not supported"
   end
@@ -40,6 +54,7 @@ LoopInterval = 0.05
 
 $queue = []
 
+#process node
 while true do
   # process inject
   injects.each_index { |idx|

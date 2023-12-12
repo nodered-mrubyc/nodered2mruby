@@ -18,6 +18,7 @@ def idarray2symarray(ary)
   return ary.map { |id| id2sym(id) }
 end
 
+#inject node
 def gen_inject(node)
   data = {:id => id2sym(node[:id]),
           :delay => node[:onceDelay].to_f,
@@ -28,6 +29,7 @@ def gen_inject(node)
   $injects << data
 end
 
+#debug node
 def gen_debug(node)
   data = {:id => id2sym(node[:id]),
           :type => :debug,
@@ -36,10 +38,25 @@ def gen_debug(node)
   $nodes << data
 end
 
+#switch-node
+def gen_switch(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :switch,
+          :payload => node[:payload],
+          :property => node[:property],
+          :propertyType => node[:propertyType],
+          :outputs => node[:outputs],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
 
+#LED-node
 def gen_led(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpio,
+          :onBoardLED => node[:onBoardLED],
+          :onBoard_mode => node[:onBoard_mode],
           :targetPort => node[:targetPort],
           :targetPort_mode => node[:targetPort_mode],
           :wires => idarray2symarray(node[:wires])
@@ -47,6 +64,82 @@ def gen_led(node)
   $nodes << data
 end
 
+#Constant node
+def gen_constant(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :constant,
+          :C => node[:C],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
+#GPIO-Read node
+def gen_gpioread(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :gpioread,
+          :readtype => node[:ReadType],
+          :GPIOType => node[:GPIOType],
+          :digital => node[:targetPort_digital],
+          :ADC => node[:targetPort_ADC],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
+#GPIO-Write node
+def gen_gpiowrite(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :gpiowrite,
+          :WriteType => node[:WriteType],
+          :GPIOType => node[:GPIOType],
+          :targetPort_digital => node[:targetPort_digital],
+          :targetPort_mode => node[:targetPort_mode],
+          :targetPort_PWM => node[:targetPort_PWM],
+          :PWM_num => node[:PWM_num],
+          :cycle => node[:cycle],
+          :double => node[:doube],
+          :time => node[:time],
+          :rate => node[:rate],
+          :wires => idarray2symarray(node[:wires])
+         }
+  $nodes << data
+end
+
+#I2C node
+def gen_i2c(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :i2c,
+          :ad => node[:ad],
+          :rules => node[:rules],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
+#Parameter node
+def gen_parameter(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :parameter,
+          :value_name => node[:value_name],
+          :data_type => node[:data_type],
+          :para => node[:para],
+          :type4array => node[:type4array],
+          :value4array => node[:value4array],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
+#function-Code
+def gen_function_code(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :function_code,
+          :func => node[:func],
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
 
 def generate_node(node)
   case node[:type] 
@@ -54,8 +147,22 @@ def generate_node(node)
     gen_inject(node)
   when "debug"
     gen_debug(node)
+  when "switch"
+    gen_switch(node)
+  when "Constant"
+    gen_constant(node)
+  when "GPIO-Read"
+    gen_gpioread(node)
+  when "GPIO-Write-1"
+    gen_gpiowrite(node)
+  when "I2C"
+    gen_i2c(node)
   when "LED"
     gen_led(node)
+  when "Parameter-Set"
+    gen_parameter(node)
+  when "function-Code"
+    gen_function_code(node)
   when "info"
   # nothing
   when "comment"

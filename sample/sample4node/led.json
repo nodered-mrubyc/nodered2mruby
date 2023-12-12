@@ -1,0 +1,45 @@
+[
+    {
+        "id": "5aaf6037da8b39b7",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 760,
+        "wires": [
+            [
+                "f04c982cf026a826"
+            ]
+        ]
+    },
+    {
+        "id": "f04c982cf026a826",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "LEDtype": "onBoardLED",
+        "onBoardLED": "1",
+        "targetPort": "",
+        "targetPort_mode": "0",
+        "onBoard_mode": "0",
+        "x": 350,
+        "y": 760,
+        "wires": []
+    }
+]

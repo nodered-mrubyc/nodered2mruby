@@ -1,0 +1,64 @@
+[
+    {
+        "id": "b99b5326944856a5",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 560,
+        "wires": [
+            [
+                "422633c7163f4ab9"
+            ]
+        ]
+    },
+    {
+        "id": "79f73ed4f474220d",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 500,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "422633c7163f4ab9",
+        "type": "GPIO-Read",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "ReadType": "digital_read",
+        "GPIOType": "read",
+        "targetPort_digital": "1",
+        "targetPort_ADC": "",
+        "x": 330,
+        "y": 560,
+        "wires": [
+            [
+                "79f73ed4f474220d"
+            ]
+        ]
+    }
+]

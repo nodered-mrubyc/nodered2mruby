@@ -1,0 +1,101 @@
+[
+    {
+        "id": "89f6013edd93e829",
+        "type": "inject",
+        "z": "4fdf280afb71ad75",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 60,
+        "wires": [
+            [
+                "e5180ab46280d834"
+            ]
+        ]
+    },
+    {
+        "id": "b4f9df93b0ed0ace",
+        "type": "LED",
+        "z": "4fdf280afb71ad75",
+        "name": "赤LED",
+        "LEDtype": "GPIO",
+        "onBoardLED": "6",
+        "targetPort": "1",
+        "targetPort_mode": "1",
+        "onBoard_mode": "0",
+        "x": 710,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "e5180ab46280d834",
+        "type": "Constant",
+        "z": "4fdf280afb71ad75",
+        "name": "",
+        "C": "1",
+        "x": 340,
+        "y": 60,
+        "wires": [
+            [
+                "fb552db01c1edcc0"
+            ]
+        ]
+    },
+    {
+        "id": "fb552db01c1edcc0",
+        "type": "GPIO-Read",
+        "z": "4fdf280afb71ad75",
+        "name": "",
+        "ReadType": "digital_read",
+        "GPIOType": "read",
+        "targetPort_digital": "1",
+        "targetPort_ADC": "",
+        "x": 410,
+        "y": 140,
+        "wires": [
+            [
+                "6b28766a49ef9117"
+            ]
+        ]
+    },
+    {
+        "id": "6b28766a49ef9117",
+        "type": "switch",
+        "z": "4fdf280afb71ad75",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 570,
+        "y": 140,
+        "wires": [
+            [
+                "b4f9df93b0ed0ace"
+            ]
+        ]
+    }
+]
