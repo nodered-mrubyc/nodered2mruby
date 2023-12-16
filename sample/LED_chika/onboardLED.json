@@ -16,7 +16,7 @@
         "repeat": "1",
         "crontab": "",
         "once": true,
-        "onceDelay": "2",
+        "onceDelay": "0.5",
         "topic": "",
         "payload": "1",
         "payloadType": "num",
@@ -24,7 +24,7 @@
         "y": 780,
         "wires": [
             [
-                "f04c982cf026a826"
+                "0618969b267b15d9"
             ]
         ]
     },
@@ -34,12 +34,12 @@
         "z": "f6f2187d.f17ca8",
         "name": "",
         "LEDtype": "onBoardLED",
-        "onBoardLED": "2",
+        "onBoardLED": "1",
         "targetPort": "",
         "targetPort_mode": "0",
         "onBoard_mode": "0",
-        "x": 430,
-        "y": 800,
+        "x": 470,
+        "y": 780,
         "wires": []
     },
     {
@@ -59,7 +59,7 @@
         "repeat": "2",
         "crontab": "",
         "once": true,
-        "onceDelay": "2",
+        "onceDelay": "1",
         "topic": "",
         "payload": "0",
         "payloadType": "num",
@@ -67,8 +67,55 @@
         "y": 820,
         "wires": [
             [
-                "f04c982cf026a826"
+                "0618969b267b15d9"
             ]
         ]
+    },
+    {
+        "id": "0618969b267b15d9",
+        "type": "switch",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 290,
+        "y": 800,
+        "wires": [
+            [
+                "f04c982cf026a826"
+            ],
+            [
+                "0bbd810ec4e59fdb"
+            ]
+        ]
+    },
+    {
+        "id": "0bbd810ec4e59fdb",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "LEDtype": "onBoardLED",
+        "onBoardLED": "2",
+        "targetPort": "",
+        "targetPort_mode": "0",
+        "onBoard_mode": "0",
+        "x": 470,
+        "y": 820,
+        "wires": []
     }
 ]

@@ -35,7 +35,7 @@
         "name": "赤LED",
         "LEDtype": "GPIO",
         "onBoardLED": "6",
-        "targetPort": "1",
+        "targetPort": "0",
         "targetPort_mode": "1",
         "onBoard_mode": "0",
         "x": 710,
