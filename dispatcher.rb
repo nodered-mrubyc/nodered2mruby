@@ -2,9 +2,45 @@
 # node dependent implementation
 #
 def process_node_gpio(node, msg)
-  puts "node=#{node}"
+  #puts "node=#{node}"
+  gpio[:wires].each { |node|
+  msg = {:id => node,
+         :onBoardLED => gpio[:onBoardLED],
+         :onBoard_mode => gpio[:onBoard_mode],
+         :targetPort => gpio[:targetPort],
+         :targetPort_mode => gpio[:targetPort_mode]
+        }
+  $queue << msg
+}
 end
 
+def process_node_gpioread(node, msg)
+  gpioread[:wires].each { |node|
+  msg = {:id => node, 
+         :GPIOType => gpioread[:GPIOType],
+         :digital => gpioread[:targetPort_digital],
+         :ADC => gpioread[:targetPort_ADC]
+        }
+  $queue << msg
+}
+end
+
+def process_node_gpiowrite(node, msg)
+  gpiowrite[:wires].each { |node|
+msg = {:WriteType => gpiowrite[:WriteType],
+       :GPIOType => gpiowrite[:GPIOType],
+       :targetPort_digital => gpiowrite[:targetPort_digital],
+       :targetPort_mode => gpiowrite[:targetPort_mode],
+       :targetPort_PWM => gpiowrite[:targetPort_PWM],
+       :PWM_num => gpiowrite[:PWM_num],
+       :cycle => gpiowrite[:cycle],
+       :double => gpiowrite[:doube],
+       :time => gpiowrite[:time],
+       :rate => gpiowrite[:rate]
+      }
+  $queue << msg
+}
+end
 
 #
 # inject 
