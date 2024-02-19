@@ -1,6 +1,23 @@
 #
+# by nodered2mruby code generator
+#
+injects = [{:id=>:n_934017e3524b2bdd,
+  :delay=>0.1,
+  :repeat=>1.0,
+  :payload=>"",
+  :wires=>[:n_4ae12f0c5c520655]}]
+nodes = [{:id=>:n_4ae12f0c5c520655,
+  :type=>:gpio,
+  :LEDtype=>"onBoardLED",
+  :onBoardLED=>"1",
+  :targetPort=>"13",
+  #:targetPort_mode=>"0",
+  :wires=>[]}]
+
+#
 # calss GPIO
 #
+=begin
 class GPIO
   IN = "in"
   OUT = "out"
@@ -20,7 +37,7 @@ class GPIO
     end
   end
 end
-
+=end
 
 #
 # node dependent implementation
@@ -28,32 +45,63 @@ end
 def process_node_gpio(node, msg)
   puts "node=#{node}"
     if node[:LEDtype] == "onBoardLED"
-      pinMode(node[:onBoardLED], 0)
-      while true
-        digitalWrite(node[:onBoardLED], 1)
-        puts "onBoardLED Write 1"
-        sleep(node[:repeat])
-        digitalWrite(node[:onBoardLED], 0)
-        puts "onBoardLED Write 0"
-        sleep(node[:repeat])
+#=begin
+
+      led = GPIO.new(0)
+      while true do
+      led.write(1)
+      sleep(0.5)
+      led.write (0)
+      sleep(0.5)
       end
-      #led = GPIO.new(node[:onBoardLED].to_i)
-      #led = GPIO.new("onBoardLED", nil, node[:onBoardLED], nil)
-      #led.write(1)
+=begin
+      puts "pin_num =#{node[:onBoardLED].to_i}"
+      led.write(node[:onBoardLED].to_i)
+      #sleep(1)
+      #led.write(0)
+      #sleep(1)
+      #end
+=begin
+      puts "#{node[:LEDtype]}"
+      puts "pin_num =#{node[:onBoardLED].to_i}"
+      pinMode(node[:onBoardLED].to_i, 0)
+      digitalWrite(node[:onBoardLED].to_i, 1)
+      puts "onBoardLED Write 1"
+      sleep(node[:repeat].to_i)
+      digitalWrite(node[:onBoardLED].to_i, 0)
+      puts "onBoardLED Write 0"
+      sleep(node[:repeat].to_i)
+#=end
+      #while true do
+        leds_write(1)
+        sleep(1)
+        leds_write(0)
+        sleep(1)
+      #end
+=end
+=begin
+      led = GPIO.new(node[:onBoardLED].to_i)
+      puts "onBoardLED Write 1"
+=end
+
+=begin class GPIO
+      led = GPIO.new("onBoardLED", nil, node[:onBoardLED], nil)
+      led.write(1)
+      puts "onBoardLED Write 1"
+
 
     elsif node[:LEDtype] == "GPIO"
-      pinMode(node[:targetPort], 0)
-      while true
-        digitalWrite(node[:onBoardLED], 1)
-        puts "Pin-LED Write 1"
-        sleep(node[:repeat])
-        digitalWrite(node[:onBoardLED], 0)
-        puts "Pin-LED Write 0"
-        sleep(node[:repeat])
-      end
+      #pinMode(node[:targetPort], 0)
+      #digitalWrite(node[:onBoardLED], 1)
+      #puts "Pin-LED Write 1"
+      #sleep(node[:repeat])
+      #digitalWrite(node[:onBoardLED], 0)
+      #puts "Pin-LED Write 0"
+      #sleep(node[:repeat])
       #led = GPIO.new(node[:targetPort].to_i, setmode(GPIO::OUT))
-      #led = GPIO.new("GPIO", node[:targetPort], nil, GPIO::OUT)
-      #led.write(1)
+      led = GPIO.new("GPIO", node[:targetPort], nil, GPIO::OUT)
+      led.write(1)
+=end
     end
 end
 

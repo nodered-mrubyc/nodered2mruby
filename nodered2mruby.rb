@@ -33,7 +33,7 @@ end
 def gen_debug(node)
   data = {:id => id2sym(node[:id]),
           :type => :debug,
-          :wires => idarray2symarray(node[:wires])           
+          :wires => idarray2symarray(node[:wires])
          }
   $nodes << data
 end
@@ -52,11 +52,12 @@ def gen_switch(node)
 end
 
 #LED-node
-def gen_led(node)
+def gen_gpio(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpio,
+          :LEDtype => node[:LEDtype],
           :onBoardLED => node[:onBoardLED],
-          :onBoard_mode => node[:onBoard_mode],
+          #:onBoard_mode => node[:onBoard_mode],
           :targetPort => node[:targetPort],
           :targetPort_mode => node[:targetPort_mode],
           :wires => idarray2symarray(node[:wires])
@@ -142,7 +143,7 @@ def gen_function_code(node)
 end
 
 def generate_node(node)
-  case node[:type] 
+  case node[:type]
   when "inject"
     gen_inject(node)
   when "debug"
@@ -158,7 +159,7 @@ def generate_node(node)
   when "I2C"
     gen_i2c(node)
   when "LED"
-    gen_led(node)
+    gen_gpio(node)
   when "Parameter-Set"
     gen_parameter(node)
   when "function-Code"
@@ -214,5 +215,3 @@ puts
 File.open("dispatcher.rb") do |f|
   puts f.read
 end
-
-

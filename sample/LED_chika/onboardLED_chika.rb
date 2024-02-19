@@ -1,60 +1,31 @@
 #
-# calss GPIO
+# by nodered2mruby code generator
 #
-class GPIO
-  IN = "in"
-  OUT = "out"
-
-  def initialize(type = nil, onboardled = nil, pin = nil, direction = nil)
-    @type = type
-    @onboardled = onboardled
-    @pin = pin
-    @direction = direction
-  end
-
-  def write(value)
-    if @type == "onBoardLED"
-      puts "Writing #{value} to GPIO #{@onboardled}"
-    elsif @type == "GPIO"
-      puts "Writing #{value} to GPIO #{@pin} at #{@direction}"
-    end
-  end
-end
-
+injects = [{:id=>:n_8e7dad9978627eb9,
+  :delay=>0.1,
+  :repeat=>1.0,
+  :payload=>"",
+  :wires=>[:n_fefa0e126c552174]}]
+nodes = [{:id=>:n_fefa0e126c552174,
+  :type=>:gpio,
+  :LEDtype=>"onBoardLED",
+  :onBoardLED=>"1",
+  :targetPort=>"",
+  :targetPort_mode=>"0",
+  :wires=>[]}]
 
 #
 # node dependent implementation
 #
 def process_node_gpio(node, msg)
   puts "node=#{node}"
-    if node[:LEDtype] == "onBoardLED"
-      pinMode(node[:onBoardLED], 0)
-      while true
-        digitalWrite(node[:onBoardLED], 1)
-        puts "onBoardLED Write 1"
-        sleep(node[:repeat])
-        digitalWrite(node[:onBoardLED], 0)
-        puts "onBoardLED Write 0"
-        sleep(node[:repeat])
-      end
-      #led = GPIO.new(node[:onBoardLED].to_i)
-      #led = GPIO.new("onBoardLED", nil, node[:onBoardLED], nil)
-      #led.write(1)
-
-    elsif node[:LEDtype] == "GPIO"
-      pinMode(node[:targetPort], 0)
-      while true
-        digitalWrite(node[:onBoardLED], 1)
-        puts "Pin-LED Write 1"
-        sleep(node[:repeat])
-        digitalWrite(node[:onBoardLED], 0)
-        puts "Pin-LED Write 0"
-        sleep(node[:repeat])
-      end
-      #led = GPIO.new(node[:targetPort].to_i, setmode(GPIO::OUT))
-      #led = GPIO.new("GPIO", node[:targetPort], nil, GPIO::OUT)
-      #led.write(1)
-    end
+        if node[:LEDType] == "onBoardLED" then
+          led = GPIO.new(node[:onBoardLED])
+          led.write 1
+        elsif :LEDType == "GPIO"
+          led = GPIO.new(:targetPort, GPIO::OUT)
+          led.write 1
+        end
 end
 
 def process_node_gpioread(node, msg)
@@ -63,10 +34,8 @@ def process_node_gpioread(node, msg)
          :GPIOType => gpioread[:GPIOType],
          :digital => gpioread[:targetPort_digital],
          :ADC => gpioread[:targetPort_ADC]
-
         }
   $queue << msg
-
 }
 end
 
@@ -86,6 +55,7 @@ def process_node_gpiowrite(node, msg)
   $queue << msg
 }
 end
+
 
 #
 # inject
