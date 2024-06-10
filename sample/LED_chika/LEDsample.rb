@@ -1,22 +1,44 @@
 #
+# by nodered2mruby code generator
+#
+injects = [{:id=>:n_934017e3524b2bdd,
+  :delay=>0.1,
+  :repeat=>1.0,
+  :payload=>"",
+  :wires=>[:n_4ae12f0c5c520655]}]
+nodes = [{:id=>:n_4ae12f0c5c520655,
+  :type=>:gpio,
+  :targetPort=>15,
+  :targetPort_mode=>"0",
+  :wires=>[]}]
+
+
+# グローバル変数
+#$gpioNum = nil  #pin番号
+#$gpioValue = 0  #LED用値
+
+$gpioNum = {}
+$gpioValue = 0
+=begin
+gpioData = {:pin =>
+            :
+}
+=end
+#
 # calss GPIO
 #
 class GPIO
-  IN = "in"
-  OUT = "out"
+  attr_accessor :pinNum
 
-  #def initialize(type = nil, onboardled = nil, pin = nil, direction = nil)
-  def initialize(gpioNum)
-    @gpioNum = gpioNum
+  def initialize(pinNum)
+    @pinNum = pinNum
   end
 
   def write(value)
-    if @type == "onBoardLED"
-      puts "Writing #{value} to GPIO #{@onboardled}"
-    elsif @type == "GPIO"
-      puts "Writing #{value} to GPIO #{@pin} at #{@direction}"
-    end
+     #$gpioValue = value
+     puts "Writing #{value} to GPIO #{@pinNum}"
   end
+
 end
 
 
@@ -25,32 +47,85 @@ end
 #
 
 #gpio-node
-$gpioNum = {}
-
 def process_node_gpio(node, msg)
-  puts "node=#{node}"
-  gpioData = 0
+  #puts "node=#{node}"
+  #$gpioNum = node[:targetPort]
+  #$gpioValue = 0
   targetPort = node[:targetPort]
-  payLoad = node[:payload]
 
-  if($gpioNum[targetPort].nil?)
-    $gpioNum[targetPort] = pinMode.new(targetPort)
-    puts "Setting up pinMode for pin #{@gpioNum}"
-  else
-    puts "Reusing pinMode for pin #{@gpioNum}"
+  #payLoad = node[:payload]
+
+=begin
+  if($injects[payLoad].nil?) #payloadが空だった場合
+    if($gpioNum[targetPort].nil?)
+      led = pinMode.new(targetPort)
+      $gpioNum[targetPort] = led
+      puts "Setting up pinMode for pin #{targetPort}"
+    else
+      led = $gpioNum[targetPort]
+      puts "Reusing pinMode for pin #{targetPort}"
+    end
+  elsif($injects[payLoad].is_a?(Float)) #payloadに数値が入っていた場合（未完）
+    $gpioValue = $injects[payLoad] #(gpioData = gpioData.new($injects[payLoad]))?
+
   end
+    if($gpioValue == 0)
+      digitalWrite($gpioNum[:targetPort], 1)
+      $gpioValue = 1
+    elsif($gpioValue == 1)
+      digitalWrite($gpioNum[:targetPort], 0)
+      $gpioValue = 0
+    end
 
   if($injects[payLoad].nil?) #payloadが空だった場合
-    if(gpioData == 0)
+    if($gpioData == 0)
       digitalWrite($gpioNum[:targetPort], 1)
-      gpioData = 1
-    elsif(gpioData == 1)
+      $gpioData = 1
+    elsif($gpioData == 1)
       digitalWrite($gpioNum[:targetPort], 0)
-      gpioData = 0
+      $gpioData = 0
     end
-  end
   elsif($injects[payLoad].is_a?(Float)) #payloadに数値が入っていた場合（未完）
-    gpioData = $injects[payLoad] #(gpioData = gpioData.new($injects[payLoad]))?
+    $gpioData = $injects[payLoad] #(gpioData = gpioData.new($injects[payLoad]))?
+    pinMode(node[:targetPort], 0)
+      digitalWrite(node[:targetPort], 1)
+      puts "Pin-LED Write 1"
+      digitalWrite(node[:targetPort], 0)
+      puts "Pin-LED Write 0"
+  end
+=end
+
+# test GPIO ##########################################################
+  if($gpioNum[targetPort].nil?)
+    led = GPIO.new(targetPort)
+    $gpioNum[targetPort] = led
+    puts "Setting up pinMode for pin #{targetPort}"
+  else
+    led = $gpioNum[targetPort]
+    puts "Reusing pinMode for pin #{targetPort}"
+  end
+
+  if($gpioValue == 0)
+    led.write 1
+    $gpioValue = 1
+  elsif($gpioValue == 1)
+    led.write 0
+    $gpioValue = 0
+  end
+end
+####################################################################
+
+=begin
+  if($injects[payLoad].nil?) #payloadが空だった場合
+    if($gpioData == 0)
+      digitalWrite($gpioNum[:targetPort], 1)
+      $gpioData = 1
+    elsif($gpioData == 1)
+      digitalWrite($gpioNum[:targetPort], 0)
+      $gpioData = 0
+    end
+  elsif($injects[payLoad].is_a?(Float)) #payloadに数値が入っていた場合（未完）
+    $gpioData = $injects[payLoad] #(gpioData = gpioData.new($injects[payLoad]))?
     pinMode(node[:targetPort], 0)
     #while true
       digitalWrite(node[:targetPort], 1)
@@ -61,6 +136,8 @@ def process_node_gpio(node, msg)
       sleep(node[:repeat])
   end
 end
+=end
+
 
 #
 #  if($injects[node[:payload]].nil){
@@ -85,7 +162,6 @@ end
    # $gpioNum = pinMode(node[:targetPort])
   #end
 
-end
 
 def process_node_gpioread(node, msg)
   gpioread[:wires].each { |node|
@@ -138,8 +214,8 @@ def process_node(node,msg)
     process_node_switch node, msg
   when :gpio
     process_node_gpio node, msg
-  when :constant
-    process_node_constant node, msg
+  #when :constant
+  #  process_node_constant node, msg
   when :gpioread
     process_node_gpioread node, msg
   when :gpiowrite

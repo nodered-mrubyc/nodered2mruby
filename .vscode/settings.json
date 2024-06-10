@@ -1,0 +1,6 @@
+{
+    "code-runner.executorMap": {
+      "mruby": "C:users/coop/mruby/build/host/bin/mruby"
+    }
+  }
+  

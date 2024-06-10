@@ -1,4 +1,25 @@
 #
+# by nodered2mruby code generator
+#
+injects = [{:id=>:n_89f6013edd93e829,
+  :delay=>1.0,
+  :repeat=>1.0,
+  :payload=>"",
+  :wires=>[:n_e5180ab46280d834]}]
+nodes = [{:id=>:n_b4f9df93b0ed0ace,
+  :type=>:gpio,
+  :targetPort=>0,
+  :targetPort_mode=>"",
+  :wires=>[]},
+ {:id=>:n_fb552db01c1edcc0,
+  :type=>:gpioread,
+  :readtype=>"digital_read",
+  :GPIOType=>"read",
+  :digital=>"1",
+  :ADC=>"",
+  :wires=>[:n_6b28766a49ef9117]}]
+
+#
 # calss GPIO
 #
 class GPIO
@@ -27,6 +48,7 @@ end
 #gpio-node
 $gpioNum = {}
 
+
 def process_node_gpio(node, msg)
   puts "node=#{node}"
   gpioData = 0
@@ -44,13 +66,17 @@ def process_node_gpio(node, msg)
     if(gpioData == 0)
       digitalWrite($gpioNum[:targetPort], 1)
       gpioData = 1
+      write(1)
+      puts(LED1)
     elsif(gpioData == 1)
       digitalWrite($gpioNum[:targetPort], 0)
       gpioData = 0
+      write(0)
+      puts(LED0)
     end
-  end
   elsif($injects[payLoad].is_a?(Float)) #payloadに数値が入っていた場合（未完）
-    gpioData = $injects[payLoad] #(gpioData = gpioData.new($injects[payLoad]))?
+    gpioData = $injects[payLoad]
+
     pinMode(node[:targetPort], 0)
     #while true
       digitalWrite(node[:targetPort], 1)
@@ -85,7 +111,7 @@ end
    # $gpioNum = pinMode(node[:targetPort])
   #end
 
-end
+#end
 
 def process_node_gpioread(node, msg)
   gpioread[:wires].each { |node|
@@ -138,8 +164,8 @@ def process_node(node,msg)
     process_node_switch node, msg
   when :gpio
     process_node_gpio node, msg
-  when :constant
-    process_node_constant node, msg
+  #when :constant
+  #  process_node_constant node, msg
   when :gpioread
     process_node_gpioread node, msg
   when :gpiowrite
