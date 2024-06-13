@@ -21,7 +21,7 @@
         "once": true,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "",
+        "payload": "90",
         "payloadType": "str",
         "x": 130,
         "y": 100,
