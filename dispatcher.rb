@@ -44,27 +44,23 @@ end
 
 if $payLoad.nil?                       # payload=nil
   if $gpioValue == 0
-    #digitalWrite($gpioNum[targetPort], 1)
     gpio.write 1
     $gpioValue = 1
   elsif $gpioValue == 1
-    #digitalWrite($gpioNum[targetPort], 0)
     gpio.write 0
     $gpioValue = 0
   end
 else                                            # payload!=nil
   if $gpioValue == 0
-    #digitalWrite($gpioNum[targetPort], 1)
     gpio.write 1
     $gpioValue = $payLoad
   elsif $gpioValue == $payLoad
-    #digitalWrite($gpioNum[targetPort], 0)
     gpio.write 0
     $gpioValue = 0
   end
 end
 end
-#=end
+#=ends
 #####################################################################################
 
 # test GPIO #########################################################################
@@ -74,6 +70,7 @@ end
     $gpioNum[targetPort] = gpio
     puts "Setting up pinMode for pin #{targetPort}"
     puts "$payLoad = #{$payLoad}, $gpioValue = #{$gpioValue}"
+    puts "#{$inject[:cnt]}"
   else
     gpio = $gpioNum[targetPort]
     puts "Reusing pinMode for pin #{targetPort}"
@@ -111,6 +108,9 @@ def process_node_gpioread(node, msg)
         }
   $queue << msg
 
+  puts "node=#{node}"
+
+
 }
 end
 
@@ -146,24 +146,14 @@ end
 #
 def process_node(node,msg)
   case node[:type]
-  when :debug
-    puts msg[:payload]
-  when :switch
-    process_node_switch node, msg
+#  when :debug
+#    puts msg[:payload]
   when :gpio
     process_node_gpio node, msg
-  when :constant
-    process_node_constant node, msg
   when :gpioread
     process_node_gpioread node, msg
   when :gpiowrite
     process_node_gpiowrite node, msg
-  when :i2c
-    process_node_i2c node, msg
-  when :parameter
-    process_node_parameter node, msg
-  when :function_code
-    process_node_function_code node, msg
   else
     puts "#{node[:type]} is not supported"
   end
@@ -184,7 +174,7 @@ while true do
   # process inject
   injects.each_index { |idx|
     injects[idx][:cnt] -= LoopInterval
-    if injects[idx][:cnt] < 0 then
+    if injects[idx][:cnt] == 0 then
       injects[idx][:cnt] = injects[idx][:repeat]
       process_inject injects[idx]
     end
