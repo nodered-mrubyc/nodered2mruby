@@ -56,7 +56,6 @@ def gen_gpio(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpio,
           :targetPort => node[:targetPort].to_i,
-          :targetPort_mode => node[:targetPort_mode],
           :wires => idarray2symarray(node[:wires])
          }
   $nodes << data
@@ -77,9 +76,8 @@ def gen_gpioread(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpioread,
           :readtype => node[:ReadType],
-          :GPIOType => node[:GPIOType],
-          :digital => node[:targetPort_digital],
-          :ADC => node[:targetPort_ADC],
+          :targetPostDigital => node[:targetPort_digital],
+          :targetPortADC => node[:targetPort_ADC],
           :wires => idarray2symarray(node[:wires][0])
          }
   $nodes << data
@@ -90,7 +88,6 @@ def gen_gpiowrite(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpiowrite,
           :WriteType => node[:WriteType],
-          :GPIOType => node[:GPIOType],
           :targetPort_digital => node[:targetPort_digital],
           :targetPort_mode => node[:targetPort_mode],
           :targetPort_PWM => node[:targetPort_PWM],
