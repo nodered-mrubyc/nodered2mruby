@@ -33,7 +33,7 @@ end
 def gen_debug(node)
   data = {:id => id2sym(node[:id]),
           :type => :debug,
-          :wires => idarray2symarray(node[:wires])           
+          :wires => idarray2symarray(node[:wires])
          }
   $nodes << data
 end
@@ -52,13 +52,10 @@ def gen_switch(node)
 end
 
 #LED-node
-def gen_led(node)
+def gen_gpio(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpio,
-          :onBoardLED => node[:onBoardLED],
-          :onBoard_mode => node[:onBoard_mode],
-          :targetPort => node[:targetPort],
-          :targetPort_mode => node[:targetPort_mode],
+          :targetPort => node[:targetPort].to_i,
           :wires => idarray2symarray(node[:wires])
          }
   $nodes << data
@@ -79,9 +76,8 @@ def gen_gpioread(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpioread,
           :readtype => node[:ReadType],
-          :GPIOType => node[:GPIOType],
-          :digital => node[:targetPort_digital],
-          :ADC => node[:targetPort_ADC],
+          :targetPostDigital => node[:targetPort_digital],
+          :targetPortADC => node[:targetPort_ADC],
           :wires => idarray2symarray(node[:wires][0])
          }
   $nodes << data
@@ -92,7 +88,6 @@ def gen_gpiowrite(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpiowrite,
           :WriteType => node[:WriteType],
-          :GPIOType => node[:GPIOType],
           :targetPort_digital => node[:targetPort_digital],
           :targetPort_mode => node[:targetPort_mode],
           :targetPort_PWM => node[:targetPort_PWM],
@@ -142,7 +137,7 @@ def gen_function_code(node)
 end
 
 def generate_node(node)
-  case node[:type] 
+  case node[:type]
   when "inject"
     gen_inject(node)
   when "debug"
@@ -158,7 +153,7 @@ def generate_node(node)
   when "I2C"
     gen_i2c(node)
   when "LED"
-    gen_led(node)
+    gen_gpio(node)
   when "Parameter-Set"
     gen_parameter(node)
   when "function-Code"
@@ -214,5 +209,3 @@ puts
 File.open("dispatcher.rb") do |f|
   puts f.read
 end
-
-
