@@ -1,6 +1,6 @@
 # global variable
 $gpioArray = {}       #number of pin
-$owmArray = {}
+$pwmArray = {}
 
 #
 # calss GPIO
