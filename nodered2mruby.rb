@@ -75,8 +75,8 @@ end
 def gen_gpioread(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpioread,
-          :readtype => node[:ReadType],
-          :targetPostDigital => node[:targetPort_digital],
+          :readtype => node[:readtype],
+          :targetPortDigital => node[:targetPort_digital],
           :targetPortADC => node[:targetPort_ADC],
           :wires => idarray2symarray(node[:wires][0])
          }
@@ -90,14 +90,20 @@ def gen_gpiowrite(node)
           :WriteType => node[:WriteType],
           :targetPort_digital => node[:targetPort_digital],
           :targetPort_mode => node[:targetPort_mode],
-          :targetPort_PWM => node[:targetPort_PWM],
-          :PWM_num => node[:PWM_num],
-          :cycle => node[:cycle],
-          :double => node[:doube],
-          :time => node[:time],
-          :rate => node[:rate],
           :wires => idarray2symarray(node[:wires])
          }
+  $nodes << data
+end
+
+#PWM node
+def gen_pwm(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :pwm,
+          :targetPort_PWM => node[:targetPort_PWM],
+          :cycle => node[:cycle],
+          :rate => node[:rate],
+          :wires => idarray2symarray(node[:wires][0])
+          }
   $nodes << data
 end
 
@@ -106,7 +112,13 @@ def gen_i2c(node)
   data = {:id => id2sym(node[:id]),
           :type => :i2c,
           :ad => node[:ad],
-          :rules => node[:rules],
+          :rules => {
+                                  :t => node[:t],
+                                  :v => node[:v],
+                                  :c => node[:c],
+                                  :b => node[:b],
+                                  :de => node[:de]
+                                },
           :wires => idarray2symarray(node[:wires][0])
          }
   $nodes << data
@@ -150,6 +162,8 @@ def generate_node(node)
     gen_gpioread(node)
   when "GPIO-Write-1"
     gen_gpiowrite(node)
+  when "PWM"
+    gen_pwm(node)
   when "I2C"
     gen_i2c(node)
   when "LED"

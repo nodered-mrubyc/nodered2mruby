@@ -1,0 +1,69 @@
+[
+    {
+        "id": "429ea1649b59e534",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 440,
+        "wires": [
+            [
+                "f46a0a4bf79cd652"
+            ]
+        ]
+    },
+    {
+        "id": "1a09c2de89a90a6d",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 420,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "f46a0a4bf79cd652",
+        "type": "I2C",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "ad": "",
+        "rules": [
+            {
+                "t": "R",
+                "v": "re",
+                "b": "1",
+                "de": "50"
+            }
+        ],
+        "x": 290,
+        "y": 440,
+        "wires": [
+            [
+                "1a09c2de89a90a6d"
+            ]
+        ]
+    }
+]

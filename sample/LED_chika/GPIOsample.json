@@ -37,7 +37,6 @@
         "z": "f6f2187d.f17ca8",
         "name": "",
         "targetPort": "0",
-        "targetPort_mode": "0",
         "x": 370,
         "y": 100,
         "wires": []
