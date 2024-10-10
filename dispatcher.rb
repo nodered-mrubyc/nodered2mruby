@@ -3,24 +3,6 @@ $gpioArray = {}       #number of pin
 $pwmArray = {}
 
 #
-# calss GPIO
-#
-=begin
-class GPIO
-  attr_accessor :pinNum
-
-  def initialize(pinNum)
-    @pinNum = pinNum
-  end
-
-  def write(value)
-    puts "Writing #{value} to GPIO #{@pinNum}, Out by #{$gpioValue}"
-    puts "$payLoad = #{$payLoad}, $gpioValue = #{$gpioValue}"
-  end
-end
-=end
-
-#
 # node dependent implementation
 #
 
