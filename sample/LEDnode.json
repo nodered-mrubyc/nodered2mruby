@@ -1,0 +1,37 @@
+[
+    {
+        "id": "934017e3524b2bdd",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "num",
+        "x": 150,
+        "y": 40,
+        "wires": [
+            [
+                "4ae12f0c5c520655"
+            ]
+        ]
+    },
+    {
+        "id": "4ae12f0c5c520655",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "targetPort": "0",
+        "x": 330,
+        "y": 40,
+        "wires": []
+    }
+]

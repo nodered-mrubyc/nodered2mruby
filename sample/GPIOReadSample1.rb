@@ -23,20 +23,6 @@ $payLoad = 0        #value of payload in inject-node
 #
 # calss GPIO
 #
-#=begin
-class GPIO
-  attr_accessor :pinNum
-
-  def initialize(pinNum)
-    @pinNum = pinNum
-  end
-
-  def write(value)
-    puts "Writing #{value} to GPIO #{@pinNum}, Out by #{gpioValue}"
-    puts "$payLoad = #{$payLoad}, $gpioValue = #{gpioValue}"
-  end
-end
-#=end
 
 #
 # node dependent implementation
@@ -45,115 +31,7 @@ end
 #gpio-node
 def process_node_gpio(node, msg)
   targetPort = node[:targetPort]
-  $payLoad = msg[:payload]
-
-# GPIO ###############################################################################
-=begin
-  if $gpioArray[targetPort].nil?                    # creating instance for pin
-    gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort] = gpio
-    puts "Setting up pinMode for pin #{targetPort}"
-  else
-    gpio = $gpioArray[targetPort]
-    puts "Reusing pinMode for pin #{targetPort}"
-  end
-
-
-  if $payLoad == ""                              # payload=nil
-    if $gpioValue == 0
-      gpio.write 1
-      $gpioValue = 1
-    elsif $gpioValue == 1
-      gpio.write 0
-      $gpioValue = 0
-    end
-  else                                            # payload!=nil
-    if $gpioValue == 0
-      gpio.write 1
-      $gpioValue = $payLoad
-    elsif $gpioValue == $payLoad
-      gpio.write 0
-      $gpioValue = 0
-    end
-  end
-
-=end
-
-# test GPIO 1 ########################################################################
-=begin
-  if $gpioArray[targetPort].nil?
-    gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort] = gpio
-    puts "Setting up pinMode for pin #{gpio}"
-    puts "gpioArray = #{$gpioArray.to_s}"
-    puts "gpioArray[targetPort] = #{$gpioArray[targetPort].to_s}"
-    #puts "$payLoad = #{$payLoad}, $gpioValue = #{$gpioValue}"
-  else
-    gpio = $gpioArray[targetPort]
-    puts "Setting up pinMode for pin #{gpio}"
-    puts "$payLoad = #{$payLoad}, $gpioValue = #{$gpioValue}"
-    puts "msg is #{msg}"
-  end
-
-  if $payLoad == ""
-    if $gpioValue == 0
-      $gpioValue = 1
-      gpio.write(1)
-    else
-      $gpioValue = 0
-      gpio.write(0)
-    end
-  else
-    if $gpioValue == 0
-      gpio.write 1
-      $gpioValue = $payLoad
-    elsif $gpioValue == $payLoad
-      gpio.write 0
-      $gpioValue = 0
-    end
-  end
-
-=end
-######################################################################################
-
-
-# GPIO 2 #############################################################################
-=begin
-  if $gpioArray[targetPort].nil? || !($gpioArray.key?(targetPort))
-    gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort] = { gpio: gpio, value: 0}
-    puts "Setting up pinMode for pin #{$gpioArray[targetPort][:gpio]}"
-  else
-    gpio = $gpioArray[targetPort][:gpio]
-    puts "------------------------------------------------------------------------"
-    puts "Reusing pinMode for pin #{$gpioArray[targetPort][:gpio]}"
-    puts "$payLoad = #{$payLoad}, $gpioValue = #{$gpioArray[targetPort][:value]}"
-  end
-
-
-  if $payLoad == ""
-    if $gpioArray[targetPort][:value] == 0
-      $gpioArray[targetPort][:value] = 1
-      puts "$gpioArray[targetPort][:gpio] = #{$gpioArray[targetPort][:gpio]}"
-      puts "$gpioArray[targetPort][:value] = #{$gpioArray[targetPort][:value]}"
-      gpio.write 1
-    else
-      $gpioArray[targetPort][:value] = 0
-      puts "$gpioArray[targetPort][:gpio] = #{$gpioArray[targetPort][:gpio]}"
-      puts "$gpioArray[targetPort][:value] = #{$gpioArray[targetPort][:value]}"
-      gpio.write 0
-    end
-  else                                            # payload!=nil
-    if $gpioValue == 0
-      gpio.write 1
-      $gpioValue = $payLoad
-    elsif $gpioValue == $payLoad
-      gpio.write 0
-      $gpioValue = 0
-    end
-  end
-
-=end
+  payLoad = msg[:payload]
 
 # test GPIO 2 ########################################################################
 #=begin
@@ -168,7 +46,7 @@ else
   puts "$payLoad = #{$payLoad}, $gpioValue = #{$gpioArray[targetPort][:value]}"
 end
 
-if $payLoad == ""
+if payLoad == ""
   if $gpioArray[targetPort][:value] == 0
     $gpioArray[targetPort][:value] = 1
     puts "$gpioArray[targetPort] = #{$gpioArray[targetPort]}"
@@ -185,8 +63,8 @@ if $payLoad == ""
 else
   if $gpioArray[targetPort][:value] == 0
     gpio.write 1
-    $gpioArray[targetPort][:value] = $payLoad
-  elsif $gpioArray[targetPort][:value] == $payLoad
+    $gpioArray[targetPort][:value] = payLoad
+  elsif $gpioArray[targetPort][:value] == payLoad
     gpio.write 0
     $gpioArray[targetPort][:value] = 0
   end
@@ -194,39 +72,6 @@ end
 
 #=end
 ######################################################################################
-end
-
-def process_node_gpioread(node, msg)
-  gpioread[:wires].each { |node|
-  msg = {:id => node,
-         :GPIOType => gpioread[:GPIOType],
-         :digital => gpioread[:targetPort_digital],
-         :ADC => gpioread[:targetPort_ADC]
-
-        }
-  $queue << msg
-
-  puts "node=#{node}"
-
-
-}
-end
-
-def process_node_gpiowrite(node, msg)
-  gpiowrite[:wires].each { |node|
-  msg = {:WriteType => gpiowrite[:WriteType],
-        :GPIOType => gpiowrite[:GPIOType],
-        :targetPort_digital => gpiowrite[:targetPort_digital],
-        :targetPort_mode => gpiowrite[:targetPort_mode],
-        :targetPort_PWM => gpiowrite[:targetPort_PWM],
-        :PWM_num => gpiowrite[:PWM_num],
-        :cycle => gpiowrite[:cycle],
-        :double => gpiowrite[:doube],
-        :time => gpiowrite[:time],
-        :rate => gpiowrite[:rate]
-        }
-  $queue << msg
-}
 end
 
 #

@@ -200,8 +200,8 @@ end
 #
 def process_node(node,msg)
   case node[:type]
-#  when :debug
-#    puts msg[:payload]
+  when :debug
+    puts msg[:payload]
   when :gpio
     process_node_gpio node, msg
   when :gpioread
@@ -216,7 +216,6 @@ def process_node(node,msg)
     puts "#{node[:type]} is not supported"
   end
 end
-
 
 injects = injects.map { |inject|
   inject[:cnt] = inject[:repeat]
