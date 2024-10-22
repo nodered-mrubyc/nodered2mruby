@@ -4,14 +4,21 @@
 injects = [{:id=>:n_934017e3524b2bdd,
   :delay=>1.0,
   :repeat=>2.0,
-  :payload=>"",
-  :wires=>[:n_4ae12f0c5c520655]}]
-nodes = [{:id=>:n_4ae12f0c5c520655, :type=>:gpio, :targetPort=>0, :wires=>[]}]
+  :payload=>"1",
+  :wires=>[:n_3e957c385a6dee4a]}]
+nodes = [{:id=>:n_3e957c385a6dee4a,
+  :type=>:gpiowrite,
+  :WriteType=>"digital_write",
+  :targetPort_digital=>0,
+  :wires=>[]}]
+#nodes = [{:id=>:n_4ae12f0c5c520655, :type=>:gpio, :targetPort=>0, :wires=>[]}]
 #=end
 
 # global variable
 $gpioArray = {}
 $pwmArray = {}
+$pinstatus = {}
+
 
 =begin
 class GPIO
@@ -55,16 +62,17 @@ end
 def process_node_gpio(node, msg)
   puts "Do LED : #{node}"
   targetPort = node[:targetPort]
-  gpioValue = 0
   payLoad = msg[:payload]
 
   if $gpioArray[targetPort].nil?
     gpio = GPIO.new(targetPort)
     $gpioArray[targetPort] = gpio
+    gpioValue = 0
+    $pinstatus[targetPort] = 0
     puts "Setting up pinMode for pin #{gpio}"
   else
     gpio = $gpioArray[targetPort]
-    #puts "-----------------------------------------------------------------------------------------"
+    gpioValue = $pinstatus[targetPort]
     puts "Reusing pinMode for pin #{gpio}"
   end
 
@@ -74,51 +82,53 @@ def process_node_gpio(node, msg)
   if payLoad == ""
     if gpioValue == 0
       gpio.write(1)
-      gpioValue = 1
+      $pinstatus[targetPort] = 1
       puts "Setting gpioValue to 1"
     else
       gpio.write(0)
-      gpioValue = 0
+      $pinstatus[targetPort] = 0
       puts "Setting gpioValue to 0"
     end
   else
     if gpioValue == 0
       gpio.write(1)
-      gpioValue = payLoad
-      puts "Setting gpioValue to #{payLoad}"
+      $pinstatus[targetPort] = payLoad
+      puts "Setting gpioValue(payload) to #{payLoad}"
     elsif gpioValue == payLoad
       gpio.write(0)
-      gpioValue = 0
-      puts "Setting gpioValue to 0"
+      $pinstatus[targetPort] = 0
+      puts "Setting gpioValue(payload) to 0"
     end
   end
 end
 
+#GPIO-Read
 def process_node_gpioread(node, msg)
-  puts "Processing GPIO-Read for node: #{node[:id]}"
-  targetPort = node[:targetPort_digital]
+  puts "Processing GPIO read for node: #{node[:id]}"
+  targetPort = node[:targetPortDigital]
 
-  if gpioReadType == "digital_read"
-    if $gpioArray.nil? || !($gpioArray.key?(targetPort))
+    if $gpioArray.nil? || !($gpioArray[targetPort].key?(targetPort))
       gpio = GPIO.new(targetPort)
-      $gpioArray[targetPort] = { gpio: gpio, value: 0 }
+      $gpioArray[targetPort] = gpioReadPin
+      puts "Setting up pinMode for pin #{targetPort}"
     else
-      gpio = $gpioArray[targetPort][:gpio]
+      gpio = $gpioArray[targetPort]
+      puts "Reusing pinMode for pin #{targetPort}"
     end
 
-    gpioReadValue = digitalRead($gpioArray[targetPort][:gpio])
+  if !gpio.nil?
+    gpioValue = digitalRead(gpio)
 
-    if gpioReadValue.nil?
-      msg[:payload] = gpioReadValue
-      node[:wires].each do |nextNodeId|
-        $queue << { id: nextNodeId, payload: gpioReadValue }
-      end
-    else
-      puts "No GPIO configured for pin #{$gpioArray[targetPort][:gpio]}"
+    msg[:payload] = gpioValue
+    node[:wires].each do |nextNodeId|
+    $queue << { id: nextNodeId, payload: gpioValue }
     end
+  else
+    puts "No GPIO configured for pin #{targetPort}"
   end
 end
 
+#ADC
 def process_node_ADC(node, msg)
   pinNum = node[:targetPort_ADC]
 
@@ -141,16 +151,18 @@ def process_node_ADC(node, msg)
 
   if $gpioArray.nil? || !($gpioArray[targetPort].key?(targetPort))
     gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort][:gpio] = gpio
+    $gpioArray[targetPort] = gpio
+    puts "Setting up pinMode for pin #{targetPort}"
   else
-    gpio = $gpioArray[targetPort][:gpio]
+    gpio = $gpioArray[targetPort]
+    puts "Reusing pinMode for pin #{targetPort}"
   end
 
   gpio.start
   adcValue = gpio.read_v
   gpio.stop
 
-  if adcValue.nil?
+  if !adcValue.nil?
     msg[:payload] = adcValue
     node[:wires].each do |nextNodeId|
       $queue << { id: nextNodeId, payload: adcValue }
@@ -160,49 +172,45 @@ def process_node_ADC(node, msg)
   end
 end
 
+#GPIO-Write
 def process_node_gpiowrite(node, msg)
-  puts "Processing GPIO write for node: #{node[:id]}"
-  targetPort = node[:digital_write]
-  gpioWriteValue = node[:targetPort_mode]
+  puts "Processing GPIO read for node: #{node[:id]}"
+  targetPort = node[:targetPort_digital]
   payLoad = msg[:payload]
 
-  if $gpioArray[targetPort].nil? || !($gpioArray[targetPort].key?(targetPort))
+  if $gpioArray[targetPort].nil?
     gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort] = { gpio: gpio, value: 0 }
-    puts "Setting up GPIO for pin #{$gpioArray[targetPort][:gpio]} as output"
+    $gpioArray[targetPort] = gpio
+    gpioValue = 0
+    $pinstatus[targetPort] = nil
+    puts "Setting up pinMode for pin #{targetPort}"
   else
-    gpioWritePin = $gpioArray[targetPort][:gpio]
-    puts "Reusing existing GPIO for pin #{targetPort}"
+    gpio = $gpioArray[targetPort]
+    gpioValue = $pinstatus[targetPort]
+    puts "Reusing pinMode for pin #{targetPort}"
   end
 
-  # GPIOピンに値を書き込み
-  if payLoad == ""
-    if gpioWriteValue == 1
-      gpioWritePin.write(1)
-      puts "Writing HIGH to GPIO pin #{targetPort}"
-    elsif gpioWriteValue == 0
+  if payLoad != ""
+    if gpioValue == 0
+      gpio.write(1)
+      $pinstatus[targetPort] = payLoad
+    elsif gpioValue == payLoad
       gpio.write(0)
-      puts "Writing LOW to GPIO pin #{targetPort}"
-    else
-      puts "Invalid value for GPIO write: #{gpioWriteValue}. Expected 0 or 1."
+      $pinstatus[targetPort] = 0
     end
   else
-    if gpioWriteValue != payLoad
-      gpioWriteValue = payLoad
-    end
+    puts "The value of payload is not set."
   end
-
-  # ハッシュに最新の書き込み状態を記録
-  $gpioArray[targetPort][:value] = gpioWriteValue
-
 end
 
+#PWM
 def process_node_PWM(node, msg)
   pwmPin = node[:targetPort_PWM]
-  cycle = node[:cycle]
-  rate = node[:rate]
+  pwmValue = 0
+  cycle = node[:cycle]  #周波数
+  rate = msg[:payload]  #inject.payloadで設定
 
-  targetPort =  case pwmNum
+  targetPort =  case pinNum
                 when "1" then 12
                 when "2" then 16
                 when "3" then nil
@@ -212,34 +220,30 @@ def process_node_PWM(node, msg)
                  nil
                 end
 
-  pwmChannel = case pwmNum
-               when "1" then 1
-               when "2" then 2
-               when "3" then nil
-               when "4" then 4
-               when "5" then 5
-               else
-                nil
-              end
+  pwmChannel = pinNum.to_i
 
-  if $gpioArray[targetPort].nil? || !($gpioArray[targetPort].key?(targetPort))
+  if $pwmArray[targetPort].nil? || !($pwmArray[targetPort].key?(targetPort))
     pwm = PWM.new(targetPort)
-    $pwmArray[targetPort] = { pwm: pwm, pwmValue: 0}
+    $pwmArray[targetPort] = pwm
+    pwm.start(pwmChannel)
+
+    if rate == ""
+      rate = 100
+    end
+
+    pwm.rate(rate, pwmChannel)
     puts "Setting up GPIO for pin #{$pwmArray} as output"
   else
     pwm = $pwmArray[targetPort][:pwm]
     puts "Reusing existing GPIO for pin #{targetPort}"
   end
 
-  pwm.rate(rate, pwmChannel)
-  pwm.start(pwmChannel)
-
-  if $pwmArray[targetPort][:pwmValue] == 0
+  if pwmValue == 0
     pwm.frequency(cycle)
-    $pwmArray[targetPort][:pwmValue] = cycle
+    pwmValue = cycle
   else
     pwm.frequency(0)
-    $pwmArray[targetPort][:pwmValue] = 0
+    pwmValue = 0
   end
 end
 

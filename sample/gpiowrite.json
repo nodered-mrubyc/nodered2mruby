@@ -1,51 +1,39 @@
 [
     {
-        "id": "1715ea0b47afd678",
-        "type": "GPIO-Write-1",
-        "z": "f6f2187d.f17ca8",
-        "name": "",
-        "WriteType": "digital_write",
-        "GPIOType": "write",
-        "targetPort_digital": "0",
-        "targetPort_mode": "1",
-        "targetPort_PWM": "",
-        "PWM_num": "",
-        "cycle": "0",
-        "double": "0",
-        "time": "",
-        "rate": "",
-        "x": 310,
-        "y": 260,
-        "wires": []
-    },
-    {
-        "id": "8d654ae0b42fab98",
+        "id": "113921ebdd74222d",
         "type": "inject",
         "z": "f6f2187d.f17ca8",
         "name": "",
         "props": [
             {
                 "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
             }
         ],
-        "repeat": "2",
+        "repeat": "1",
         "crontab": "",
-        "once": true,
-        "onceDelay": "0.0",
+        "once": false,
+        "onceDelay": 0.1,
         "topic": "",
-        "payload": "",
+        "payload": "1",
         "payloadType": "num",
         "x": 130,
-        "y": 180,
+        "y": 220,
         "wires": [
             [
-                "935a89a7869a387a",
-                "1715ea0b47afd678"
+                "3e957c385a6dee4a"
             ]
         ]
+    },
+    {
+        "id": "3e957c385a6dee4a",
+        "type": "GPIO-Write-1",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "WriteType": "digital_write",
+        "GPIOType": "write",
+        "targetPort_digital": "0",
+        "x": 390,
+        "y": 220,
+        "wires": []
     }
 ]

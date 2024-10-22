@@ -1,6 +1,25 @@
 # global variable
 $gpioArray = {}       #number of pin
 $pwmArray = {}
+$pinstatus = {}
+
+#
+# class myindex
+#
+class Myindex
+  def myindex(nodes, msg)
+    i = 0
+
+    while i < nodes.length
+      if nodes[i][:id] == msg[:id]
+        return i
+      else
+        i += 1
+      end
+    end
+    return nil
+  end
+end
 
 #
 # node dependent implementation
@@ -10,24 +29,27 @@ $pwmArray = {}
 def process_node_gpio(node, msg)
   targetPort = node[:targetPort]
   payLoad = msg[:payload]
-  gpioValue = 0
+  #gpioValue = 0
 
   if $gpioArray[targetPort].nil?                    # creating instance for pin
     gpio = GPIO.new(targetPort)
     $gpioArray[targetPort] = gpio
+    gpioValue = 0
+    $pinstatus[targetPort] = 0
     puts "Setting up pinMode for pin #{targetPort}"
   else
     gpio = $gpioArray[targetPort]
+    gpioValue = $pinstatus[targetPort]
     puts "Reusing pinMode for pin #{targetPort}"
   end
 
   if payLoad.nil?                       # payload=nil
     if gpioValue == 0
       gpio.write 1
-      gpioValue = 1
+      $pinstatus[targetPort] = 1
     elsif gpioValue == 1
       gpio.write 0
-      gpioValue = 0
+      $pinstatus[targetPort] = 0
     end
   else                                   # payload!=nil
     if gpioValue == 0
@@ -237,15 +259,23 @@ while true do
     end
   }
 
-  # process queue
-  msg = $queue.first
-  if msg then
-    $queue.delete_at 0
-    idx = nodes.index { |v| v[:id]==msg[:id] }
-    if idx then
-      process_node nodes[idx], msg
+    # process queue
+    indexer = Myindex.new()
+    msg = $queue.first
+    if msg then
+      puts "$queue = #{$queue}"
+      $queue.delete_at 0
+      #idx = nodes.myindex { |v| v[:id] == msg[:id] }
+      idx = indexer.myindex(nodes, msg)
+      puts "node is #{nodes[idx]}"
+      if idx then
+        puts "Do #{nodes[idx]}"
+        process_node nodes[idx], msg
+        puts "-----------------------------------------------------------------------------------------"
+      else
+        puts "node not found: #{msg[:id]}"
+      end
     end
-  end
 
   # next
   # puts "q=#{$queue}"
