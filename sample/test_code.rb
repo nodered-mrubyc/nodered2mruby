@@ -298,42 +298,19 @@ def process_node_PWM(node, msg)
 
   pwmChannel = pwmNum.to_i
 
-=begin
   if $pwmArray[targetPort].nil?
     pwm = PWM.new(targetPort)
-    puts "Setting up pinMode for pin #{pwm}"
     $pwmArray[targetPort] = pwm
+    puts "pwm start"
   else
     pwm = $pwmArray[targetPort]
-    puts "Reusing pinMode for pin #{pwm}"
+    puts "pwm continue"
   end
 
   pwm.frequency(cycle)
-  puts "PWM.frequency = #{cycle}"
-  puts "rate = #{rate}"
+  puts "cycle = #{cycle}"
   pwm.duty(rate)
-
-  pwm.start
-=end
-
-if $pwmArray[targetPort].nil?
-  pwm = PWM.new(targetPort)
-  puts "Setting up pinMode for pin #{pwm}"
-  $pwmArray[targetPort] = pwm
-else
-  pwm = $pwmArray[targetPort]
-  puts "Reusing pinMode for pin #{pwm}"
-end
-
-pwm.frequency(cycle)
-puts "frequency = #{cycle}"
-
-puts "rate = #{rate}, channel = #{pwmChannel}"
-#pwm.rate(rate, pwmChannel)
-pwm.duty(rate)
-puts "duty"
-
-pwm.start(pwmChannel)
+  puts "rate = #{rate}"
 end
 
 #

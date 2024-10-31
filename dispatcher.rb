@@ -165,12 +165,12 @@ end
 
 #PWM
 def process_node_PWM(node, msg)
-  pwmPin = node[:PWM_num]
-  pwmValue = 0
-  cycle = node[:cycle]  #周波数
-  rate = msg[:payload]  #inject.payloadで設定
+  pwmNum = node[:PWM_num]
+  cycle = node[:cycle].to_i      #周波数
+  rate = msg[:payload].to_i      #inject.payloadで設定
+  pinstatus = {}
 
-  targetPort =  case pwmPin
+  targetPort =  case pwmNum
                 when "1" then 12
                 when "2" then 16
                 when "3" then nil
@@ -180,27 +180,21 @@ def process_node_PWM(node, msg)
                  nil
                 end
 
-  pwmChannel = pwmPin.to_i
+  pwmChannel = pwmNum.to_i
 
   if $pwmArray[targetPort].nil?
     pwm = PWM.new(targetPort)
     $pwmArray[targetPort] = pwm
-    pwm.start(pwmChannel)
-
-    pwm.rate(rate, pwmChannel)
-    puts "Setting up GPIO for pin #{$pwmArray} as output"
+    puts "pwm start"
   else
-    pwm = $pwmArray[targetPort][:pwm]
-    puts "Reusing existing GPIO for pin #{targetPort}"
+    pwm = $pwmArray[targetPort]
+    puts "pwm continue"
   end
 
-  if pwmValue == 0
-    pwm.frequency(cycle)
-    pwmValue = cycle
-  else
-    pwm.frequency(0)
-    pwmValue = 0
-  end
+  pwm.frequency(cycle)
+  puts "cycle = #{cycle}"
+  pwm.duty(rate)
+  puts "rate = #{rate}"
 end
 
 #I2C
