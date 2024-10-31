@@ -1,44 +1,26 @@
 #
 # by nodered2mruby code generator
 #
-injects = [{:id=>:n_934017e3524b2bdd,
-  :delay=>1.0,
-  :repeat=>2.0,
-  :payload=>"1",
-  :wires=>[:n_3e957c385a6dee4a]}]
-nodes = [{:id=>:n_3e957c385a6dee4a,
-  :type=>:gpiowrite,
-  :WriteType=>"digital_write",
-  :targetPort_digital=>0,
-  :wires=>[]}]
-#nodes = [{:id=>:n_4ae12f0c5c520655, :type=>:gpio, :targetPort=>0, :wires=>[]}]
-#=end
+injects = [{:id=>:n_cc11ec3ebd2a8a9a,
+  :delay=>0.1,
+  :repeat=>0.0,
+  :payload=>"",
+  :wires=>[:n_ef93352024ba732a]}]
+nodes = [{:id=>:n_ef93352024ba732a,
+  :type=>:gpioread,
+  :readtype=>nil,
+  :targetPortDigital=>0,
+  :wires=>[:n_8fb0d4f3e09846f1]},
+ {:id=>:n_8fb0d4f3e09846f1, :type=>:gpio, :targetPort=>0, :wires=>[]}]
 
 # global variable
-$gpioArray = {}
+$gpioArray = {}       #number of pin
 $pwmArray = {}
 $pinstatus = {}
-
-
-=begin
-class GPIO
-  attr_accessor :pinNum
-
-  def initialize(pinNum)
-    @pinNum = pinNum
-  end
-
-  def write(value)
-    puts "Writing #{value} to GPIO #{@pinNum}"
-  end
-end
-=end
-
 
 #
 # class myindex
 #
-#=begin
 class Myindex
   def myindex(nodes, msg)
     i = 0
@@ -54,50 +36,54 @@ class Myindex
   end
 end
 
+class GPIO
+  attr_accessor :pinNum
+
+  def initialize(pinNum)
+    @pinNum = pinNum
+  end
+
+  def write(value)
+    puts "Writing #{value} to GPIO #{@pinNum}"
+  end
+end
+
 #
 # node dependent implementation
 #
 
-#gpio-node
+#GPIO
 def process_node_gpio(node, msg)
-  puts "Do LED : #{node}"
   targetPort = node[:targetPort]
   payLoad = msg[:payload]
 
-  if $gpioArray[targetPort].nil?
+  if $gpioArray[targetPort].nil?                    # creating instance for pin
     gpio = GPIO.new(targetPort)
     $gpioArray[targetPort] = gpio
     gpioValue = 0
     $pinstatus[targetPort] = 0
-    puts "Setting up pinMode for pin #{gpio}"
+    puts "Setting up pinMode for pin #{targetPort}"
   else
     gpio = $gpioArray[targetPort]
     gpioValue = $pinstatus[targetPort]
-    puts "Reusing pinMode for pin #{gpio}"
+    puts "Reusing pinMode for pin #{targetPort}"
   end
 
-  # 現在のピンの状態をデバッグ出力
-  puts "Current pin state before payload check, gpioValue: #{gpioValue}"
-
-  if payLoad == ""
+  if payLoad.nil?                       # payload=nil
     if gpioValue == 0
-      gpio.write(1)
+      gpio.write 1
       $pinstatus[targetPort] = 1
-      puts "Setting gpioValue to 1"
-    else
-      gpio.write(0)
+    elsif gpioValue == 1
+      gpio.write 0
       $pinstatus[targetPort] = 0
-      puts "Setting gpioValue to 0"
     end
-  else
+  else                                   # payload!=nil
     if gpioValue == 0
-      gpio.write(1)
-      $pinstatus[targetPort] = payLoad
-      puts "Setting gpioValue(payload) to #{payLoad}"
+      gpio.write 1
+      gpioValue = payLoad
     elsif gpioValue == payLoad
-      gpio.write(0)
-      $pinstatus[targetPort] = 0
-      puts "Setting gpioValue(payload) to 0"
+      gpio.write 0
+      gpioValue = 0
     end
   end
 end
@@ -107,17 +93,17 @@ def process_node_gpioread(node, msg)
   puts "Processing GPIO read for node: #{node[:id]}"
   targetPort = node[:targetPortDigital]
 
-    if $gpioArray.nil? || !($gpioArray[targetPort].key?(targetPort))
-      gpio = GPIO.new(targetPort)
-      $gpioArray[targetPort] = gpioReadPin
-      puts "Setting up pinMode for pin #{targetPort}"
-    else
-      gpio = $gpioArray[targetPort]
-      puts "Reusing pinMode for pin #{targetPort}"
-    end
+  if $gpioArray[targetPort].nil?
+    gpio = GPIO.new(targetPort)
+    $gpioArray[targetPort] = gpioReadPin
+    puts "Setting up pinMode for pin #{targetPort}"
+  else
+    gpio = $gpioArray[targetPort]
+    puts "Reusing pinMode for pin #{targetPort}"
+  end
 
   if !gpio.nil?
-    gpioValue = digitalRead(gpio)
+    gpioValue = digitalRead(targetPort)
 
     msg[:payload] = gpioValue
     node[:wires].each do |nextNodeId|
@@ -175,28 +161,26 @@ end
 #GPIO-Write
 def process_node_gpiowrite(node, msg)
   puts "Processing GPIO read for node: #{node[:id]}"
-  targetPort = node[:targetPort_digital]
+  targetPort = node[:targetPortDigital]
   payLoad = msg[:payload]
+  gpioValue = 0
 
-  if $gpioArray[targetPort].nil?
+  if $gpioArray.nil? || !($gpioArray[targetPort].key?(targetPort))
     gpio = GPIO.new(targetPort)
     $gpioArray[targetPort] = gpio
-    gpioValue = 0
-    $pinstatus[targetPort] = nil
     puts "Setting up pinMode for pin #{targetPort}"
   else
     gpio = $gpioArray[targetPort]
-    gpioValue = $pinstatus[targetPort]
     puts "Reusing pinMode for pin #{targetPort}"
   end
 
-  if payLoad != ""
+  if !payLoad.nil?
     if gpioValue == 0
-      gpio.write(1)
-      $pinstatus[targetPort] = payLoad
+      gpio.write 1
+      gpioValue = payLoad
     elsif gpioValue == payLoad
-      gpio.write(0)
-      $pinstatus[targetPort] = 0
+      gpio.write 0
+      gpioValue = 0
     end
   else
     puts "The value of payload is not set."
@@ -207,8 +191,8 @@ end
 def process_node_PWM(node, msg)
   pwmPin = node[:targetPort_PWM]
   pwmValue = 0
-  cycle = node[:cycle]  #周波数
-  rate = msg[:payload]  #inject.payloadで設定
+  cycle = node[:cycle]  #蜻ｨ豕｢謨ｰ
+  rate = msg[:payload]  #inject.payload縺ｧ險ｭ螳・
 
   targetPort =  case pinNum
                 when "1" then 12
@@ -247,6 +231,9 @@ def process_node_PWM(node, msg)
   end
 end
 
+#I2C
+
+
 #
 # inject
 #
@@ -273,12 +260,11 @@ def process_node(node,msg)
   when :gpiowrite
     process_node_gpiowrite node, msg
   when :pwm
-    process_node_PWM node, msg
+    process_node_pwm node, msg
   else
     puts "#{node[:type]} is not supported"
   end
 end
-
 
 injects = injects.map { |inject|
   inject[:cnt] = inject[:repeat]
@@ -294,30 +280,29 @@ while true do
   # process inject
   injects.each_index { |idx|
     injects[idx][:cnt] -= LoopInterval
-    if injects[idx][:cnt] <= 0 then
+    if injects[idx][:cnt] == 0 then
       injects[idx][:cnt] = injects[idx][:repeat]
       process_inject injects[idx]
-      puts "Do inject #{idx}"
     end
   }
 
-  # process queue
-  indexer = Myindex.new()
-  msg = $queue.first
-  if msg then
-    puts "$queue = #{$queue}"
-    $queue.delete_at 0
-    #idx = nodes.myindex { |v| v[:id] == msg[:id] }
-    idx = indexer.myindex(nodes, msg)
-    puts "node is #{nodes[idx]}"
-    if idx then
-      puts "Do #{nodes[idx]}"
-      process_node nodes[idx], msg
-      puts "-----------------------------------------------------------------------------------------"
-    else
-      puts "node not found: #{msg[:id]}"
+    # process queue
+    indexer = Myindex.new()
+    msg = $queue.first
+    if msg then
+      puts "$queue = #{$queue}"
+      $queue.delete_at 0
+      #idx = nodes.index { |v| v[:id] == msg[:id] }
+      idx = indexer.myindex(nodes, msg)
+      puts "node is #{nodes[idx]}"
+      if idx then
+        puts "Do #{nodes[idx]}"
+        process_node nodes[idx], msg
+        puts "-----------------------------------------------------------------------------------------"
+      else
+        puts "node not found: #{msg[:id]}"
+      end
     end
-  end
 
   # next
   # puts "q=#{$queue}"
