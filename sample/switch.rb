@@ -1,8 +1,25 @@
+#
+# by nodered2mruby code generator
+#
+injects = [{:id=>:n_a864c0746306469e,
+  :delay=>0.1,
+  :repeat=>1.0,
+  :payload=>"1",
+  :wires=>[:n_32db3ea118f21cd4]}]
+nodes = [{:id=>:n_b64c51f26c86ff89, :type=>:debug, :wires=>[]},
+ {:id=>:n_32db3ea118f21cd4,
+  :type=>:switch,
+  :property=>"payload",
+  :propertyType=>"msg",
+  :rules=>[{:t=>"eq", :v=>"1", :vt=>"num"}],
+  :checkall=>"true",
+  :repair=>false,
+  :wires=>[[:n_b64c51f26c86ff89]]}]
+
 # global variable
 $gpioArray = {}       #number of pin
 $pwmArray = {}
 $pinstatus = {}
-$i2cArray = {}
 
 #
 # class myindex
@@ -25,7 +42,6 @@ end
 #
 # class GPIO
 #
-=begin
 class GPIO
   attr_accessor :pinNum
 
@@ -37,7 +53,7 @@ class GPIO
     puts "Writing #{value} to GPIO #{@pinNum}"
   end
 end
-=end
+
 
 #
 # node dependent implementation
@@ -183,8 +199,8 @@ end
 # PWM
 def process_node_PWM(node, msg)
   pwmNum = node[:PWM_num]
-  cycle = node[:cycle].to_i      #周波数
-  rate = msg[:payload].to_i      #duty比
+  cycle = node[:cycle].to_i      #蜻ｨ豕｢謨ｰ
+  rate = msg[:payload].to_i      #duty豈・
   pinstatus = {}
 
   targetPort =  case pwmNum
@@ -215,65 +231,10 @@ def process_node_PWM(node, msg)
 end
 
 # I2C
-def process_node_I2C(node, msg)
-  puts "Processing I2C for node: #{node[:id]}"
 
-  slaveAddress = node[:ad].to_s
-  rules = node[:rules]
-  payLoad = msg[:payload]
-
-  if $i2cArray[slaveAddress].nil?
-    i2c = I2C.new(slaveAddress)
-    $i2cArray[slaveAddress] = i2c
-    puts "Setting up pinMode for pin #{i2c}"
-  else
-    i2c = $i2cArray[slaveAddress]
-    puts "Reusing pinMode for pin #{i2c}"
-  end
-
-  rules.each do |rule|
-    if rule[:t] == "W"
-      puts "type W"
-      i2c.write(slaveAddress, rule[:v], payLoad)
-      puts "write 1"
-    elsif rule[:t] == "R"
-      puts "R"
-      i2c.read(slaveAddress, rule[:b], rule[:v])
-      puts "Read I2C(#{i2c})"
-    end
-  end
-end
-
-# Button
-def process_node_Button(node, msg)
-  puts "Button(Select Pull)"
-
-  targetPort = node[:targetPort]
-  selectPull = node[:selectPull]
-
-  if $gpioArray[targetPort].nil?
-    gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort] = gpio
-    gpioValue = 0
-    $pinstatus[targetPort] = 0
-    puts "Setting up pinMode for pin #{targetPort}"
-  else
-    gpio = $gpioArray[targetPort]
-    gpioValue = $pinstatus[targetPort]
-    puts "Reusing pinMode for pin #{targetPort}"
-  end
-
-  if selectPull == "0"
-    gpio.pull(0)
-  elsif selectPull == "1"
-    gpio.pull(1)
-  elsif selectPull == "2"
-    gpio.pull(-1)
-  end
-end
 
 # Switch
-def process_switch(node, msg)
+def process_node_switch(node, msg)
   puts "node[:rules] = #{node[:rules]}"
 
 
@@ -307,7 +268,7 @@ def process_node(node,msg)
     process_node_gpio node, msg
   when :gpioread
     process_node_gpioread node, msg
-  when :adc
+  when :ADC
     process_node_ADC node, msg
   when :gpiowrite
     process_node_gpiowrite node, msg

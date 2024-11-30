@@ -18,7 +18,7 @@ def idarray2symarray(ary)
   return ary.map { |id| id2sym(id) }
 end
 
-#inject node
+#inject
 def gen_inject(node)
   data = {:id => id2sym(node[:id]),
           :delay => node[:onceDelay].to_f,
@@ -29,7 +29,7 @@ def gen_inject(node)
   $injects << data
 end
 
-#debug node
+#debug
 def gen_debug(node)
   data = {:id => id2sym(node[:id]),
           :type => :debug,
@@ -38,20 +38,30 @@ def gen_debug(node)
   $nodes << data
 end
 
-#switch-node
+#Switch
 def gen_switch(node)
   data = {:id => id2sym(node[:id]),
           :type => :switch,
-          :payload => node[:payload],
           :property => node[:property],
           :propertyType => node[:propertyType],
-          :outputs => node[:outputs],
-          :wires => idarray2symarray(node[:wires][0])
+          :rules => node[:rules].map do |rule|
+            {
+              :t => rule[:t],
+              :v => rule[:v],
+              :vt => rule[:vt],
+              :v2 => rule[:v],
+              :v2t => rule[:vt],
+              :case => rule[:case]
+            }
+          end,
+          :checkall => node[:checkall],
+          :repair => node[:repair],
+          :wires => node[:wires].flat_map { |wire| idarray2symarray(wire) }
          }
   $nodes << data
 end
 
-#LED-node
+#GPIO
 def gen_gpio(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpio,
@@ -61,7 +71,7 @@ def gen_gpio(node)
   $nodes << data
 end
 
-#Constant node
+#Constant
 def gen_constant(node)
   data = {:id => id2sym(node[:id]),
           :type => :constant,
@@ -71,7 +81,7 @@ def gen_constant(node)
   $nodes << data
 end
 
-#GPIO-Read node
+#GPIO-Read
 def gen_gpioread(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpioread,
@@ -82,7 +92,7 @@ def gen_gpioread(node)
   $nodes << data
 end
 
-#GPIO-Write node
+#GPIO-Write
 def gen_gpiowrite(node)
   data = {:id => id2sym(node[:id]),
           :type => :gpiowrite,
@@ -93,7 +103,7 @@ def gen_gpiowrite(node)
   $nodes << data
 end
 
-#PWM node
+#PWM
 def gen_pwm(node)
   data = {:id => id2sym(node[:id]),
           :type => :pwm,
@@ -101,28 +111,41 @@ def gen_pwm(node)
           :cycle => node[:cycle],
           :rate => node[:rate],
           :wires => idarray2symarray(node[:wires])
-          }
+         }
   $nodes << data
 end
 
-#I2C node
+#I2C
 def gen_i2c(node)
   data = {:id => id2sym(node[:id]),
           :type => :i2c,
           :ad => node[:ad],
-          :rules => {
-                                  :t => node[:t],
-                                  :v => node[:v],
-                                  :c => node[:c],
-                                  :b => node[:b],
-                                  :de => node[:de]
-                                },
+          :rules => node[:rules].map do |rule|
+            {
+              :t => rule[:t],
+              :v => rule[:v],
+              :c => rule[:c],
+              :b => rule[:b],
+              :de => rule[:de]
+            }
+          end,
           :wires => idarray2symarray(node[:wires][0])
          }
   $nodes << data
 end
 
-#Parameter node
+#Button
+def gen_button(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :button,
+          :targetPort => node[:targetPort],
+          :selectPull => node[:selectPull],
+          :wires => idarray2symarray(node[:wires][0])
+          }
+  $nodes << data
+end
+
+#Parameter
 def gen_parameter(node)
   data = {:id => id2sym(node[:id]),
           :type => :parameter,
@@ -136,8 +159,8 @@ def gen_parameter(node)
   $nodes << data
 end
 
-#function-Code
-def gen_function_code(node)
+#function-ruby
+def gen_function_ruby(node)
   data = {:id => id2sym(node[:id]),
           :type => :function_code,
           :func => node[:func],
@@ -150,8 +173,6 @@ def generate_node(node)
   case node[:type]
   when "inject"
     gen_inject(node)
-  when "debug"
-    gen_debug(node)
   when "switch"
     gen_switch(node)
   when "Constant"
@@ -164,12 +185,16 @@ def generate_node(node)
     gen_pwm(node)
   when "I2C"
     gen_i2c(node)
-  when "LED"
+  when "GPIO"
     gen_gpio(node)
   when "Parameter-Set"
     gen_parameter(node)
   when "function-Code"
-    gen_function_code(node)
+    gen_function_ruby(node)
+  when "Button"
+    gen_button(node)
+  when "debug"
+    gen_debug(node)
   when "info"
   # nothing
   when "comment"
@@ -180,9 +205,6 @@ def generate_node(node)
     puts "# #{node[:type]} is not supported, #{node}"
   end
 end
-
-
-
 #
 # main
 #
