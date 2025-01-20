@@ -9,6 +9,7 @@ require 'pp'
 
 $injects = []
 $nodes = []
+#$function_ruby = []
 
 def id2sym(str)
   ("n_"+str).to_sym
@@ -185,7 +186,7 @@ def generate_node(node)
     gen_pwm(node)
   when "I2C"
     gen_i2c(node)
-  when "GPIO"
+  when "LED"
     gen_gpio(node)
   when "Parameter-Set"
     gen_parameter(node)
@@ -237,6 +238,7 @@ puts "#"
 # data
 puts "injects = #{$injects.pretty_inspect}"
 puts "nodes = #{$nodes.pretty_inspect}"
+puts "function_ruby = #{$function_ruby.pretty_inspect}"
 puts
 
 # dispatcher

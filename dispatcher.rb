@@ -21,7 +21,7 @@ class Myindex
   end
 end
 
-#GPIO Class
+# GPIO Class
 =begin
 class GPIO
   attr_accessor :pinNum
@@ -36,6 +36,70 @@ class GPIO
 end
 =end
 
+# function-ruby Class
+=begin
+class DynamicFunctionCreator
+  def initialize
+    @functions = Module.new
+    extend @functions
+  end
+
+  # 動的に関数を作成
+  def create_function(id, code, args = [])
+    @functions.module_eval do
+      define_method(id) do |*received_args|
+        # 引数をローカル変数として設定
+        args.each_with_index do |arg_name, index|
+          instance_variable_set("@#{arg_name}", received_args[index])
+        end
+
+        # 渡されたコードを評価
+        instance_eval(code)
+      end
+    end
+  end
+
+  # 作成した関数を呼び出し
+  def call_function(id, *args)
+    if respond_to?(id)
+      send(id, *args)
+    else
+      raise "Function with id :#{id} not found."
+    end
+  end
+end
+=end
+class DynamicFunctionCreator
+  def initialize
+    @functions = Module.new
+    extend @functions
+  end
+
+  # 動的に関数を作成
+  def create_function(id, proc_object, args = [])
+    @functions.module_eval do
+      define_method(id) do |*received_args|
+        # 引数をインスタンス変数として設定
+        args.each_with_index do |arg_name, index|
+          instance_variable_set("@#{arg_name}", received_args[index])
+        end
+
+        # 渡されたProcを呼び出し
+        instance_exec(*received_args, &proc_object)
+      end
+    end
+  end
+
+  # 作成した関数を呼び出し
+  def call_function(id, *args)
+    if respond_to?(id)
+      send(id, *args)
+    else
+      raise "Function with id :#{id} not found."
+    end
+  end
+end
+
 #
 # node dependent implementation
 #
@@ -43,8 +107,11 @@ end
 # GPIO
 def process_node_gpio(node, msg)
   puts "Do LED : #{node}"
+  puts "msg = #{msg}"
   targetPort = node[:targetPort]
   payLoad = msg[:payload]
+  sleepTime = msg[:repeat]
+  puts "sleep = #{sleepTime}"
 
   if $gpioArray[targetPort].nil?
     gpio = GPIO.new(targetPort)
@@ -58,28 +125,25 @@ def process_node_gpio(node, msg)
     puts "Reusing pinMode for pin #{gpio}"
   end
 
-  # 現在のピンの状態をデバッグ出力
   puts "Current pin state before payload check, gpioValue: #{gpioValue}"
 
-  if payLoad == ""
+  if payLoad != ""
+    if payLoad == 0
+      gpio.write(0)
+      puts "Setting gpioValue to 0"
+    elsif payLoad == 1
+      gpio.write(1)
+      puts "Setting gpioValue to 1"
+    end
+  else
     if gpioValue == 0
       gpio.write(1)
       $pinstatus[targetPort] = 1
       puts "Setting gpioValue to 1"
-    else
+    elsif gpioValue == 1
       gpio.write(0)
       $pinstatus[targetPort] = 0
       puts "Setting gpioValue to 0"
-    end
-  else
-    if gpioValue != payLoad
-      gpio.write(1)
-      $pinstatus[targetPort] = payLoad
-      puts "Setting gpioValue(payload) to #{payLoad}"
-    elsif gpioValue == payLoad
-      gpio.write(0)
-      $pinstatus[targetPort] = nil
-      puts "Setting gpioValue(payload) to 0"
     end
   end
 end
@@ -108,7 +172,6 @@ def process_node_gpioread(node, msg)
       msg = { id: nextNodeId, payload: gpioReadValue }
       $queue << msg
     end
-    puts "gpioReadValue = #{gpioReadValue}"
   end
 end
 
@@ -286,6 +349,7 @@ def process_node_switch(node, msg)
 
   rules = node[:rules]
   payLoad = msg[:payload]
+  puts "payLoad = #{payLoad}"
 
 
   rules.each_with_index do |rule, index|
@@ -293,147 +357,185 @@ def process_node_switch(node, msg)
     value2 = rule[:v2]
     switchCase = rule[:case]
 
-    case rule[:t]
-      when "eq"            # ==
-        if payLoad == value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "neq"           # !=
-        if payLoad != value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "lt"            # <
-        if payLoad > value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "lte"           # <=
-        if payLoad >= value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "gt"            # >
-        if payLoad < value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "gte"           # >=
-        if payLoad <= value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "hask"          # キーを含む
-        if payLoad.key?(value)
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "btwn"          # 範囲内である
-        if payLoad >= value && payLoad <= value2
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "cont"          # 要素に含む
-        if payLoad == true
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "regex"         # 正規表現にマッチ
-        if payLoad =~ value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "true"          # trueである
-        if payLoad == true
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "false"         # falseである
-        if payLoad == false
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "null"          # nullである
-        if payLoad.nil?
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "nnull"         # nullでない
-        if !payLoad.nil?
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "istype"        # 指定型
-        if payLoad.class == value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "empty"         # 空である
-        if payLoad.empty
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "nempty"        # 空でない
-        if !payLoad.empty
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "head"          # 先頭要素である
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad.first }
-          puts "msg = #{msg}"
-      when "index"         # indexの範囲内である
-        if payLoad.size >= value.to_i && payLoad.size <= value2.to_i
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "tail"          # 末尾要素である
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
-        msg = { id: node[:wires][index], payload: payLoad.last }
-        puts "msg = #{msg}"
-      when "jsonata_exp"   # JSONata式
-        if payLoad.class == value
-          puts "nextNode = #{node[:wires][index]}, index = #{index}"
-          msg = { id: node[:wires][index], payload: payLoad }
-          puts "msg = #{msg}"
-        end
-      when "else"          # その他
-        msg = { id: node[:wires][index], payload: payLoad }
-        puts "デフォルトmsg = #{msg}"
-      else                 # 条件不一致
-        puts "The specified condition does not match : #{rule[:t]}"
+    case rule[:vt]
+    when "str"
+      puts "stirng"
+      value = rule[:v].to_s
+    when "num"
+      puts "num"
+      value = if rule[:v].to_s.include?(".")
+        rule[:v].to_f
+      else
+        rule[:v].to_i
       end
+    end
+
+    puts "value = #{value}, value.class = #{value.class}"
+
+    case rule[:t]
+    when  "eq"           # ==
+      if payLoad == value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "neq"           # !=
+      if payLoad != value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "lt"            # <
+      if payLoad > value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "lte"           # <=
+      if payLoad >= value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "gt"            # >
+      if payLoad < value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "gte"           # >=
+      if payLoad <= value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "hask"          # キーを含む
+      if payLoad.key?(value)
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "btwn"          # 範囲内である
+      if payLoad >= value && payLoad <= value2
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "cont"          # 要素に含む
+      if payLoad == true
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "regex"         # 正規表現にマッチ
+      if payLoad =~ value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "true"          # trueである
+      if payLoad == true
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "false"         # falseである
+      if payLoad == false
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "null"          # nullである
+      if payLoad.nil?
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "nnull"         # nullでない
+      if !payLoad.nil?
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "istype"        # 指定型
+      if payLoad.class == value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "empty"         # 空である
+      if payLoad.empty
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "nempty"        # 空でない
+      if !payLoad.empty
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "head"          # 先頭要素である
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad.first }
+        puts "msg = #{msg}"
+    when "index"         # indexの範囲内である
+      if payLoad.size >= value.to_i && payLoad.size <= value2.to_i
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad, :repeat => msg[:repeat] }
+        puts "msg = #{msg}"
+      end
+    when "tail"          # 末尾要素である
+      puts "nextNode = #{node[:wires][index]}, index = #{index}"
+      msg = { id: node[:wires][index], payload: payLoad.last }
+      puts "msg = #{msg}"
+    when "jsonata_exp"   # JSONata式
+      if payLoad.class == value
+        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+        msg = { id: node[:wires][index], payload: payLoad }
+        puts "msg = #{msg}"
+      end
+    when "else"          # その他
+      msg = { id: node[:wires][index], payload: payLoad }
+      puts "デフォルトmsg = #{msg}"
+    else                 # 条件不一致
+      puts "The specified condition does not match : #{rule[:t]}"
+    end
   end
 
   $queue << msg
 
 end
 
+#function-ruby
+#def process_node_function_code(node, msg)
+#  functionName = node[:id]
+#  functionCode = node[:func]
+
+#  geneFunction = <<~RUBY
+#    def #{functionName}()
+#    #{functionCode.lines.map { |line| "  #{line}" }.join}
+#    end
+#  RUBY
+
+#    return geneFunction
+#  else
+#    raise "Invalid node type. Expected 'function-ruby'."
+#  end
+
+#  node[:wires].each do |nextNodeId|
+#    msg = { id: nextNodeId, payload: result }
+#    $queue << msg
+#  end
+#end
+
+
 #
 # inject
 #
 def process_inject(inject)
   inject[:wires].each { |node|
-    msg = {:id => node, :payload => inject[:payload]}
+    msg = { :id => node, :payload => inject[:payload] }
     puts "msg = #{msg}"
     $queue << msg
   }
@@ -448,6 +550,8 @@ def process_node(node,msg)
     puts "msg[:payload] = #{msg[:payload]}"
   when :switch
     process_node_switch node, msg
+  #when :function_code
+  #  process_node_function_code node, msg
   when :gpio
     process_node_gpio node, msg
   when :gpioread
@@ -467,19 +571,28 @@ def process_node(node,msg)
   end
 end
 
+=begin
+injects = injects.map { |inject|
+  inject[:cnt] = inject[:repeat]
+  inject[:sleep] = inject[:delay]
+  inject
+}.sort_by { |inject| inject[:delay] }
+=end
 
 injects = injects.map { |inject|
   inject[:cnt] = inject[:repeat]
   inject
 }
 
+puts "injects #{injects}"
+
 LoopInterval = 0.05
+DelayInterval = 0.05
 
 $queue = []
 
 #process node
 while true do
-  # process inject  delay の考慮
   injects.each_index { |idx|
     injects[idx][:cnt] -= LoopInterval
     if injects[idx][:cnt] <= 0 then

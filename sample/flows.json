@@ -1,8 +1,8 @@
 [
     {
-        "id": "653d0fe397da8616",
+        "id": "86fe4264777a905d",
         "type": "inject",
-        "z": "f6f2187d.f17ca8",
+        "z": "e21bcfff206ad4c7",
         "name": "",
         "props": [
             {
@@ -13,84 +13,29 @@
                 "vt": "str"
             }
         ],
-        "repeat": "2",
+        "repeat": "1",
         "crontab": "",
-        "once": true,
-        "onceDelay": "0",
+        "once": false,
+        "onceDelay": 0.1,
         "topic": "",
-        "payload": "0",
-        "payloadType": "num",
-        "x": 130,
-        "y": 160,
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 100,
         "wires": [
             [
-                "0ce63751f6dafe70"
+                "c3f20f4657692edb"
             ]
         ]
     },
     {
-        "id": "adb474f55de28618",
-        "type": "debug",
-        "z": "f6f2187d.f17ca8",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 480,
-        "y": 140,
-        "wires": []
-    },
-    {
-        "id": "0ce63751f6dafe70",
-        "type": "switch",
-        "z": "f6f2187d.f17ca8",
+        "id": "c3f20f4657692edb",
+        "type": "LED",
+        "z": "e21bcfff206ad4c7",
         "name": "",
-        "property": "payload",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "neq",
-                "v": "1",
-                "vt": "str"
-            },
-            {
-                "t": "lt",
-                "v": "1",
-                "vt": "str"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 290,
-        "y": 160,
-        "wires": [
-            [
-                "adb474f55de28618"
-            ],
-            [
-                "cd50c8bc6e5be137"
-            ]
-        ]
-    },
-    {
-        "id": "cd50c8bc6e5be137",
-        "type": "debug",
-        "z": "f6f2187d.f17ca8",
-        "name": "debug 2",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 480,
-        "y": 180,
+        "targetPort": "0",
+        "x": 350,
+        "y": 100,
         "wires": []
     }
 ]
