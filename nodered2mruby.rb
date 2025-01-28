@@ -9,7 +9,7 @@ require 'pp'
 
 $injects = []
 $nodes = []
-#$function_ruby = []
+$function_ruby = []
 
 def id2sym(str)
   ("n_"+str).to_sym
@@ -76,7 +76,7 @@ end
 def gen_constant(node)
   data = {:id => id2sym(node[:id]),
           :type => :constant,
-          :C => node[:C],
+          :C => node[:C].to_i,
           :wires => idarray2symarray(node[:wires][0])
          }
   $nodes << data
@@ -168,6 +168,34 @@ def gen_function_ruby(node)
           :wires => idarray2symarray(node[:wires][0])
          }
   $nodes << data
+
+  funcID = node[:id]
+  funcCode = node[:func]
+
+  generatedFunction = "def func_#{funcID}(node, msg)\n" +
+                      funcCode.sub(/\A"/, '').sub(/\n"\s\+\z/, '').lines.map { |line| "  #{line.strip}" }.join("\n") +
+                      "end"
+=begin
+  generatedFunction = <<~RUBY
+    def func_#{funcID}(node, msg)
+      #{funcCode.lines.map(&:strip).join("\n")}
+    end
+  RUBY
+
+  define_method(funcID) do |msg|
+    data = msg
+    funcCode.split("\n").each do |line|
+      #eval(line) # `eval`を除去するならRubyコードに変換済みが必要
+    end
+    data
+  end
+=end
+
+  # 出力するコードを配列に追加
+  $function_ruby << {
+    id: funcID,
+    code: generatedFunction.lines.map(&:rstrip).join("\n")
+  }
 end
 
 def generate_node(node)

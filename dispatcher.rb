@@ -36,70 +36,6 @@ class GPIO
 end
 =end
 
-# function-ruby Class
-=begin
-class DynamicFunctionCreator
-  def initialize
-    @functions = Module.new
-    extend @functions
-  end
-
-  # 動的に関数を作成
-  def create_function(id, code, args = [])
-    @functions.module_eval do
-      define_method(id) do |*received_args|
-        # 引数をローカル変数として設定
-        args.each_with_index do |arg_name, index|
-          instance_variable_set("@#{arg_name}", received_args[index])
-        end
-
-        # 渡されたコードを評価
-        instance_eval(code)
-      end
-    end
-  end
-
-  # 作成した関数を呼び出し
-  def call_function(id, *args)
-    if respond_to?(id)
-      send(id, *args)
-    else
-      raise "Function with id :#{id} not found."
-    end
-  end
-end
-=end
-class DynamicFunctionCreator
-  def initialize
-    @functions = Module.new
-    extend @functions
-  end
-
-  # 動的に関数を作成
-  def create_function(id, proc_object, args = [])
-    @functions.module_eval do
-      define_method(id) do |*received_args|
-        # 引数をインスタンス変数として設定
-        args.each_with_index do |arg_name, index|
-          instance_variable_set("@#{arg_name}", received_args[index])
-        end
-
-        # 渡されたProcを呼び出し
-        instance_exec(*received_args, &proc_object)
-      end
-    end
-  end
-
-  # 作成した関数を呼び出し
-  def call_function(id, *args)
-    if respond_to?(id)
-      send(id, *args)
-    else
-      raise "Function with id :#{id} not found."
-    end
-  end
-end
-
 #
 # node dependent implementation
 #
@@ -570,14 +506,6 @@ def process_node(node,msg)
     puts "#{node[:type]} is not supported"
   end
 end
-
-=begin
-injects = injects.map { |inject|
-  inject[:cnt] = inject[:repeat]
-  inject[:sleep] = inject[:delay]
-  inject
-}.sort_by { |inject| inject[:delay] }
-=end
 
 injects = injects.map { |inject|
   inject[:cnt] = inject[:repeat]
