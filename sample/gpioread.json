@@ -1,0 +1,57 @@
+[
+    {
+        "id": "cc11ec3ebd2a8a9a",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 300,
+        "wires": [
+            [
+                "ef93352024ba732a"
+            ]
+        ]
+    },
+    {
+        "id": "ef93352024ba732a",
+        "type": "GPIO-Read",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "ReadType": "digital_read",
+        "GPIOType": "read",
+        "targetPort_digital": "0",
+        "x": 370,
+        "y": 300,
+        "wires": [
+            [
+                "8fb0d4f3e09846f1"
+            ]
+        ]
+    },
+    {
+        "id": "8fb0d4f3e09846f1",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "targetPort": "0",
+        "x": 550,
+        "y": 300,
+        "wires": []
+    }
+]

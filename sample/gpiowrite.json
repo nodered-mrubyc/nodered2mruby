@@ -1,13 +1,6 @@
 [
     {
-        "id": "f6f2187d.f17ca8",
-        "type": "tab",
-        "label": "Flow 1",
-        "disabled": false,
-        "info": ""
-    },
-    {
-        "id": "934017e3524b2bdd",
+        "id": "113921ebdd74222d",
         "type": "inject",
         "z": "f6f2187d.f17ca8",
         "name": "",
@@ -18,27 +11,29 @@
         ],
         "repeat": "1",
         "crontab": "",
-        "once": true,
+        "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "",
-        "payloadType": "str",
+        "payload": "1",
+        "payloadType": "num",
         "x": 130,
-        "y": 100,
+        "y": 220,
         "wires": [
             [
-                "4ae12f0c5c520655"
+                "3e957c385a6dee4a"
             ]
         ]
     },
     {
-        "id": "4ae12f0c5c520655",
-        "type": "LED",
+        "id": "3e957c385a6dee4a",
+        "type": "GPIO-Write-1",
         "z": "f6f2187d.f17ca8",
         "name": "",
-        "targetPort": "0",
-        "x": 370,
-        "y": 100,
+        "WriteType": "digital_write",
+        "GPIOType": "write",
+        "targetPort_digital": "0",
+        "x": 390,
+        "y": 220,
         "wires": []
     }
 ]

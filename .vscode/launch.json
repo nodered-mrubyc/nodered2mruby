@@ -4,20 +4,11 @@
     // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
-        
-
-        
-
-
-
-        
-
         {
-            "type": "mruby",
+            "type": "mrdb",
             "request": "launch",
-            "name": "mrubyで実行",
-            "program": "${workspaceFolder}/nodered2mruby/sample/LED_chika/LEDchika_pin.rb",
+            "name": "mrubyデバッガで実行",
+            "program": "${workspaceFolder}/nodered2mruby/sample/LED_chika/GPIOsample1.rb",
             "mrubyVersion": "2.0.0"
         }
     ]

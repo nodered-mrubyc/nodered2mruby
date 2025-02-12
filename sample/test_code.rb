@@ -1,11 +1,47 @@
+#
+# by nodered2mruby code generator
+#
+injects = [{:id=>:n_d911d0ee4b7a3d4d,
+  :delay=>0.1,
+  :repeat=>2.0,
+  :payload=>"1.0",
+  :wires=>[:n_e8c32ffc8889f978]}]
+nodes = [{:id=>:n_97a99168f5aa7444, :type=>:debug, :wires=>[]},
+ {:id=>:n_e8c32ffc8889f978,
+  :type=>:function_code,
+  :func=>"data = msg \n" + "data = data + 1\n" + "return data",
+  :wires=>[:n_97a99168f5aa7444]}]
+
 # global variable
+$definedFunctions = {}
 $gpioArray = {}
 $pwmArray = {}
 $pinstatus = {}
 $i2cArray = {}
 
+module Parsefunction
+  def self.parse(funcString)
+    # サポートする簡単な操作のみを許可
+    if funcString.match(/^\s*data\s*=\s*data\s*(\+|\-|\*|\/)\s*\d+\s*$/)
+      operator, operand = funcString.match(/(\+|\-|\*|\/)\s*(\d+)/).captures
+      operand = operand.to_f
+      case operator
+      when "+"
+        ->(data) { data.to_f + operand }
+      when "-"
+        ->(data) { data.to_f - operand }
+      when "*"
+        ->(data) { data.to_f * operand }
+      when "/"
+        ->(data) { data.to_f / operand }
+      end
+    else
+      raise ArgumentError, "Unsupported function string: #{func_str}"
+    end
+  end
+end
+
 # Myindex class
-#=begin
 class Myindex
   def myindex(nodes, msg)
     i = 0
@@ -21,8 +57,19 @@ class Myindex
   end
 end
 
+class Makemethod
+  def self.define_methods(functions)
+    functions.each do |name, code|
+      define_method(name) do
+        result = "Code: #{code}"
+        result
+      end
+    end
+  end
+end
+
 # GPIO Class
-=begin
+#=begin
 class GPIO
   attr_accessor :pinNum
 
@@ -34,12 +81,11 @@ class GPIO
     puts "Writing #{value} to GPIO #{@pinNum}"
   end
 end
-=end
+#=end
 
 #
 # node dependent implementation
 #
-
 # GPIO
 def process_node_gpio(node, msg)
   puts "Do LED : #{node}"
@@ -279,6 +325,16 @@ def process_node_Button(node, msg)
   end
 end
 
+def process_node_Constant(node, msg)
+  constantValue = node[:C]
+  puts "constant = #{constantValue}"
+
+  node[:wires].each do |nextNodeId|
+    msg = { id: nextNodeId, payload: constantValue }
+    $queue << msg
+  end
+end
+
 #Switch
 def process_node_switch(node, msg)
   puts "node[:rules] = #{node[:rules]}"
@@ -444,27 +500,123 @@ def process_node_switch(node, msg)
 end
 
 #function-ruby
-#def process_node_function_code(node, msg)
-#  functionName = node[:id]
-#  functionCode = node[:func]
+def process_node_function_code(node, msg)
+  function_name = node[:id]
+  function_code = node[:func]
+  result = nil
+  data = msg[:payload]
 
-#  geneFunction = <<~RUBY
-#    def #{functionName}()
-#    #{functionCode.lines.map { |line| "  #{line}" }.join}
-#    end
-#  RUBY
+  if function_code.is_a?(String)
+    function_code_proc = Parsefunction.parse(function_code)
+  elsif function_code.is_a?(Proc)
+    function_code_proc = function_code
+  else
+    raise ArgumentError, "func must be a Proc or a String"
+  end
+  # メソッドを動的に定義
+  unless respond_to?(function_name)
+    self.class.define_method(function_name) do |data|
+      function_code_proc.call(data)
+    end
+    puts "メソッド '#{function_name}' を作成しました。"
+  else
+    puts "メソッド '#{function_name}' は既に存在しています。"
+  end
+  # メソッドの呼び出し
+  if respond_to?(function_name)
+    result = send(function_name, data)
+    puts "メソッド '#{function_name}' を実行しました。結果: #{result}"
+  else
+    puts "メソッド '#{function_name}' が見つかりません。"
+  end
 
-#    return geneFunction
-#  else
-#    raise "Invalid node type. Expected 'function-ruby'."
-#  end
+  # 次のノードへ結果を送信
+  node[:wires].each do |next_node_id|
+    next_msg = { id: next_node_id, payload: result }
+    $queue << next_msg
+  end
+end
+=begin
+  def process_node_function_code(node, msg)
+    functions = [
+      funcId = node[:id],
+      funcCode = <<~CODE
+        #{node[:func]}
+      CODE
+    ]
+    result = nil
 
-#  node[:wires].each do |nextNodeId|
-#    msg = { id: nextNodeId, payload: result }
-#    $queue << msg
-#  end
-#end
+    Makemethod.define_methods(functions)
 
+    result = Makemethod.new.send(node[:id], msg[:payload])
+    puts "Result: #{result}"
+
+  =begin
+    #funcId = node[:id]
+    puts node[:func]
+    #funcCode = node[:func]
+    data = msg[:payload].to_f
+    funcCode = <<~CODE
+      #{node[:func]}
+    CODE
+  =end
+  =begin
+      function_name = node[:id]
+      function_code = node[:func]
+      result = nil
+      data = msg[:payload]
+
+      # 文字列を解析してProcに変換
+      if function_code.is_a?(String)
+        function_code_proc = Parsefunction.parse(function_code)
+      elsif function_code.is_a?(Proc)
+        function_code_proc = function_code
+      else
+        raise "func must be a Proc or a String"
+      end
+
+      # メソッドを動的に定義
+      unless respond_to?(function_name)
+        define_singleton_method(function_name) do |data|
+          function_code_proc.call(data)
+        end
+        puts "メソッド '#{function_name}' を作成しました。"
+      else
+        puts "メソッド '#{function_name}' は既に存在しています。"
+      end
+
+      # メソッドの呼び出し
+      if respond_to?(function_name)
+        result = send(function_name, data)
+        puts "メソッド '#{function_name}' を実行しました。結果: #{result}"
+      else
+        puts "メソッド '#{function_name}' が見つかりません。"
+      end
+  =end
+  =begin
+  function_name = "func_#{node[:id]}"
+  function_code = node[:func]
+  result = nil
+  data = msg[:payload]
+
+  unless $definedFunctions.key?(function_name)
+    $definedFunctions[function_name] = Proc.new do |data|
+      eval(function_code)
+    end
+  end
+
+  result = $definedFunctions[function_name].call(data)
+
+  result = $definedFunctions[function_name].call
+  puts "result = #{result}"
+
+  # 次のノードへ結果を送信
+  node[:wires].each do |next_node_id|
+    next_msg = { id: next_node_id, payload: result }
+    $queue << next_msg
+  end
+end
+=end
 
 #
 # inject
@@ -486,8 +638,8 @@ def process_node(node,msg)
     puts "msg[:payload] = #{msg[:payload]}"
   when :switch
     process_node_switch node, msg
-  #when :function_code
-  #  process_node_function_code node, msg
+  when :function_code
+    process_node_function_code node, msg
   when :gpio
     process_node_gpio node, msg
   when :gpioread
@@ -502,6 +654,8 @@ def process_node(node,msg)
     process_node_I2C node, msg
   when :button
     process_node_Button node, msg
+  when :constant
+    process_node_Constant node, msg
   else
     puts "#{node[:type]} is not supported"
   end

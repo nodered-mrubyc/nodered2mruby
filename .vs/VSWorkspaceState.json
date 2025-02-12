@@ -4,6 +4,6 @@
     "\\sample",
     "\\sample\\LED_chika"
   ],
-  "SelectedNode": "\\sample\\LED_chika\\onboardLED.rb",
+  "SelectedNode": "\\sample\\LED_chika\\GPIOsample1.rb",
   "PreviewInSolutionExplorer": false
 }

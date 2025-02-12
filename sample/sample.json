@@ -1,0 +1,102 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "934017e3524b2bdd",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "num",
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "4ae12f0c5c520655"
+            ]
+        ]
+    },
+    {
+        "id": "4ae12f0c5c520655",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "targetPort": "0",
+        "targetPort_mode": "0",
+        "x": 350,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "935a89a7869a387a",
+        "type": "GPIO-Read",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "ReadType": "digital_read",
+        "GPIOType": "read",
+        "targetPort_digital": "0",
+        "targetPort_ADC": "",
+        "x": 310,
+        "y": 180,
+        "wires": [
+            [
+                "62c2416d5622c935"
+            ]
+        ]
+    },
+    {
+        "id": "62c2416d5622c935",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "targetPort": "０",
+        "targetPort_mode": "0",
+        "x": 490,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "8d654ae0b42fab98",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.0",
+        "topic": "",
+        "payload": "",
+        "payloadType": "num",
+        "x": 130,
+        "y": 180,
+        "wires": [
+            [
+                "935a89a7869a387a"
+            ]
+        ]
+    }
+]

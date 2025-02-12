@@ -1,43 +1,40 @@
 [
     {
-        "id": "f6f2187d.f17ca8",
-        "type": "tab",
-        "label": "Flow 1",
-        "disabled": false,
-        "info": ""
-    },
-    {
-        "id": "934017e3524b2bdd",
+        "id": "86fe4264777a905d",
         "type": "inject",
-        "z": "f6f2187d.f17ca8",
+        "z": "e21bcfff206ad4c7",
         "name": "",
         "props": [
             {
                 "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
             }
         ],
         "repeat": "1",
         "crontab": "",
-        "once": true,
+        "once": false,
         "onceDelay": 0.1,
         "topic": "",
         "payload": "",
-        "payloadType": "str",
-        "x": 130,
+        "payloadType": "date",
+        "x": 150,
         "y": 100,
         "wires": [
             [
-                "4ae12f0c5c520655"
+                "c3f20f4657692edb"
             ]
         ]
     },
     {
-        "id": "4ae12f0c5c520655",
+        "id": "c3f20f4657692edb",
         "type": "LED",
-        "z": "f6f2187d.f17ca8",
+        "z": "e21bcfff206ad4c7",
         "name": "",
         "targetPort": "0",
-        "x": 370,
+        "x": 350,
         "y": 100,
         "wires": []
     }
