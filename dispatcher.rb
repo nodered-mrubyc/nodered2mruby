@@ -1,11 +1,12 @@
 # global variable
 $gpioArray = {}
+$adcArray = {}
 $pwmArray = {}
 $pinstatus = {}
 $i2cArray = {}
 
 # Myindex class
-#=begin
+# $queue内のノードIDと合致するindex番号を調べる
 class Myindex
   def myindex(nodes, msg)
     i = 0
@@ -36,18 +37,30 @@ class GPIO
 end
 =end
 
+# ADC Class
+=begin
+class ADC
+  attr_accessor :pinNum
+
+  def initialize(pinNum)
+    @pinNum = pinNum
+  end
+
+  def read(value)
+    puts "Reading #{value} to GPIO #{@pinNum}"
+    adcValue = value
+  end
+end
+=end
+
+
 #
 # node dependent implementation
 #
-
 # GPIO
 def process_node_gpio(node, msg)
-  puts "Do LED : #{node}"
-  puts "msg = #{msg}"
   targetPort = node[:targetPort]
   payLoad = msg[:payload]
-  sleepTime = msg[:repeat]
-  puts "sleep = #{sleepTime}"
 
   if $gpioArray[targetPort].nil?
     gpio = GPIO.new(targetPort)
@@ -58,35 +71,28 @@ def process_node_gpio(node, msg)
   else
     gpio = $gpioArray[targetPort]
     gpioValue = $pinstatus[targetPort]
-    puts "Reusing pinMode for pin #{gpio}"
+    puts "Reusing pinMode for pin #{gpio}, #{gpioValue}"
   end
-
-  puts "Current pin state before payload check, gpioValue: #{gpioValue}"
 
   if payLoad != ""
     if payLoad == 0
       gpio.write(0)
-      puts "Setting gpioValue to 0"
     elsif payLoad == 1
       gpio.write(1)
-      puts "Setting gpioValue to 1"
     end
   else
     if gpioValue == 0
       gpio.write(1)
       $pinstatus[targetPort] = 1
-      puts "Setting gpioValue to 1"
     elsif gpioValue == 1
       gpio.write(0)
       $pinstatus[targetPort] = 0
-      puts "Setting gpioValue to 0"
     end
   end
 end
 
 # GPIO-Read
 def process_node_gpioread(node, msg)
-  puts "Processing GPIO read for node: #{node[:id]}"
   targetPort = node[:targetPortDigital]
 
   if $gpioArray[targetPort].nil?
@@ -113,52 +119,30 @@ end
 
 # ADC
 def process_node_ADC(node, msg)
-  pinNum = node[:targetPort_ADC]
+  targetPortADC = node[:targetPort_ADC]
 
-  targetPort = case pinNum
-               when "0" then 0
-               when "1" then 1
-               when "2" then 5
-               when "3" then 6
-               when "4" then 7
-               when "5" then 8
-               when "6" then 19
-               when "7" then 20
-               else
-                nil
-               end
-
-  if targetPort.nil?
-    puts "No GPIO configured for pin"
+  if $adcArray[targetPortADC].nil?
+    adc = ADC.new(targetPortADC)
+    $adcArray[targetPortADC] = adc
+    puts "Setting up pinMode for pin #{targetPortADC}"
+  else
+    adc = $adcArray[targetPortADC]
+    puts "Reusing pinMode for pin #{targetPortADC}"
   end
 
-  if $gpioArray[targetPort].nil?
-    gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort] = gpio
-    puts "Setting up pinMode for pin #{targetPort}"
-  else
-    gpio = $gpioArray[targetPort]
-    puts "Reusing pinMode for pin #{targetPort}"
-  end
+  adc.start
+  adcValue_v = adc.read_v
 
-  gpio.start
-  adcValue = gpio.read_v
-  gpio.stop
+  msg[:payload] = adcValue
 
-  if adcValue.nil?
-    puts "No GPIO configured for pin #{targetPort}"
-  else
-    msg[:payload] = adcValue
-    node[:wires].each do |nextNodeId|
-      msg = { id: nextNodeId, payload: adcValue }
-      $queue << msg
-    end
+  node[:wires].each do |nextNodeId|
+    msg = { id: nextNodeId, payload: adcValue }
+    $queue << msg
   end
 end
 
 # GPIO-Write
 def process_node_gpiowrite(node, msg)
-  puts "Processing GPIO read for node: #{node[:id]}"
   targetPort = node[:targetPort_digital]
   payLoad = msg[:payload]
 
@@ -223,7 +207,6 @@ end
 
 # I2C
 def process_node_I2C(node, msg)
-  puts "Processing I2C for node: #{node[:id]}"
 
   slaveAddress = node[:ad].to_s
   rules = node[:rules]
@@ -253,7 +236,6 @@ end
 
 # Button
 def process_node_Button(node, msg)
-  puts "Button(Select Pull)"
 
   targetPort = node[:targetPort]
   selectPull = node[:selectPull]
@@ -279,163 +261,110 @@ def process_node_Button(node, msg)
   end
 end
 
-#Switch
+# Constant
+def process_node_Constant(node, msg)
+  constantValue = node[:C]
+
+  node[:wires].each do |nextNodeId|
+    msg = { id: nextNodeId, payload: constantValue }
+    $queue << msg
+  end
+end
+
+# Switch
 def process_node_switch(node, msg)
-  puts "node[:rules] = #{node[:rules]}"
 
   rules = node[:rules]
-  payLoad = msg[:payload]
-  puts "payLoad = #{payLoad}"
-
+  payLoad = msg[:payload].to_f
 
   rules.each_with_index do |rule, index|
-    value = rule[:v]
-    value2 = rule[:v2]
+    value = rule[:v].to_f
+    value2 = rule[:v2].to_f
     switchCase = rule[:case]
-
-    case rule[:vt]
-    when "str"
-      puts "stirng"
-      value = rule[:v].to_s
-    when "num"
-      puts "num"
-      value = if rule[:v].to_s.include?(".")
-        rule[:v].to_f
-      else
-        rule[:v].to_i
-      end
-    end
-
-    puts "value = #{value}, value.class = #{value.class}"
 
     case rule[:t]
     when  "eq"           # ==
       if payLoad == value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "neq"           # !=
       if payLoad != value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "lt"            # <
       if payLoad > value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "lte"           # <=
       if payLoad >= value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "gt"            # >
       if payLoad < value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "gte"           # >=
       if payLoad <= value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "hask"          # キーを含む
       if payLoad.key?(value)
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "btwn"          # 範囲内である
       if payLoad >= value && payLoad <= value2
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "cont"          # 要素に含む
-      if payLoad == true
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
+      if payLoad == trueである
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "regex"         # 正規表現にマッチ
       if payLoad =~ value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "true"          # trueである
       if payLoad == true
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "false"         # falseである
       if payLoad == false
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "null"          # nullである
       if payLoad.nil?
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "nnull"         # nullでない
       if !payLoad.nil?
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "istype"        # 指定型
       if payLoad.class == value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "empty"         # 空である
       if payLoad.empty
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "nempty"        # 空でない
       if !payLoad.empty
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
     when "head"          # 先頭要素である
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
-        msg = { id: node[:wires][index], payload: payLoad.first }
-        puts "msg = #{msg}"
+      msg = { id: node[:wires][index], payload: payLoad.first }
     when "index"         # indexの範囲内である
       if payLoad.size >= value.to_i && payLoad.size <= value2.to_i
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
-        msg = { id: node[:wires][index], payload: payLoad, :repeat => msg[:repeat] }
-        puts "msg = #{msg}"
+      msg = { id: node[:wires][index], payload: payLoad, :repeat => msg[:repeat] }
       end
     when "tail"          # 末尾要素である
-      puts "nextNode = #{node[:wires][index]}, index = #{index}"
       msg = { id: node[:wires][index], payload: payLoad.last }
-      puts "msg = #{msg}"
     when "jsonata_exp"   # JSONata式
       if payLoad.class == value
-        puts "nextNode = #{node[:wires][index]}, index = #{index}"
         msg = { id: node[:wires][index], payload: payLoad }
-        puts "msg = #{msg}"
       end
-    when "else"          # その他
-      msg = { id: node[:wires][index], payload: payLoad }
-      puts "デフォルトmsg = #{msg}"
     else                 # 条件不一致
-      puts "The specified condition does not match : #{rule[:t]}"
+      msg = { id: node[:wires][index], payload: payLoad }
     end
   end
 
@@ -443,28 +372,25 @@ def process_node_switch(node, msg)
 
 end
 
-#function-ruby
-#def process_node_function_code(node, msg)
-#  functionName = node[:id]
-#  functionCode = node[:func]
+# function-ruby
+# sendメソッドでは実行できない
+def process_node_function_code(node, msg)
+  function_name = "func_#{node[:id]}".to_sym
 
-#  geneFunction = <<~RUBY
-#    def #{functionName}()
-#    #{functionCode.lines.map { |line| "  #{line}" }.join}
-#    end
-#  RUBY
+  function_code = node[:func]
+  data = msg[:payload].to_f
 
-#    return geneFunction
-#  else
-#    raise "Invalid node type. Expected 'function-ruby'."
-#  end
+  result = send("func_n_d4daf5fbe8b2ab52", data)
+  puts "result = #{result}"
 
-#  node[:wires].each do |nextNodeId|
-#    msg = { id: nextNodeId, payload: result }
-#    $queue << msg
-#  end
-#end
+  # コードを直接記述
+  #result = (data * 1000 - 600)/10.0
 
+  node[:wires].each do |next_node_id|
+    next_msg = { id: next_node_id, payload: result }
+    $queue << next_msg
+  end
+end
 
 #
 # inject
@@ -486,8 +412,8 @@ def process_node(node,msg)
     puts "msg[:payload] = #{msg[:payload]}"
   when :switch
     process_node_switch node, msg
-  #when :function_code
-  #  process_node_function_code node, msg
+  when :function_code
+    process_node_function_code node, msg
   when :gpio
     process_node_gpio node, msg
   when :gpioread
@@ -502,6 +428,8 @@ def process_node(node,msg)
     process_node_I2C node, msg
   when :button
     process_node_Button node, msg
+  when :constant
+    process_node_Constant node, msg
   else
     puts "#{node[:type]} is not supported"
   end
@@ -534,15 +462,11 @@ while true do
   indexer = Myindex.new()
   msg = $queue.first
   if msg then
-    puts "$queue = #{$queue}"
     $queue.delete_at 0
-    puts "$queue = #{$queue}"
     #idx = nodes.myindex { |v| v[:id] == msg[:id] }
     idx = indexer.myindex(nodes, msg)
-    puts "node is #{nodes[idx]}"
     if idx then
       process_node nodes[idx], msg
-      puts "-----------------------------------------------------------------------------------------"
     else
       puts "node not found: #{msg[:id]}"
     end

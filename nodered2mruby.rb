@@ -93,6 +93,15 @@ def gen_gpioread(node)
   $nodes << data
 end
 
+def gen_adc(node)
+  data = {:id => id2sym(node[:id]),
+          :type => :ADC,
+          :targetPort_ADC => node[:targetPort_ADC].to_i,
+          :wires => idarray2symarray(node[:wires][0])
+         }
+  $nodes << data
+end
+
 #GPIO-Write
 def gen_gpiowrite(node)
   data = {:id => id2sym(node[:id]),
@@ -161,6 +170,7 @@ def gen_parameter(node)
 end
 
 #function-ruby
+# ノード方法の先頭に生成する
 def gen_function_ruby(node)
   data = {:id => id2sym(node[:id]),
           :type => :function_code,
@@ -172,30 +182,18 @@ def gen_function_ruby(node)
   funcID = node[:id]
   funcCode = node[:func]
 
-  generatedFunction = "def func_#{funcID}(node, msg)\n" +
-                      funcCode.sub(/\A"/, '').sub(/\n"\s\+\z/, '').lines.map { |line| "  #{line.strip}" }.join("\n") +
-                      "end"
-=begin
-  generatedFunction = <<~RUBY
-    def func_#{funcID}(node, msg)
-      #{funcCode.lines.map(&:strip).join("\n")}
-    end
-  RUBY
 
-  define_method(funcID) do |msg|
-    data = msg
-    funcCode.split("\n").each do |line|
-      #eval(line) # `eval`を除去するならRubyコードに変換済みが必要
-    end
-    data
+  cleanedCode = funcCode.gsub(/\\n/, "\n").gsub(/\\"/, "\"")
+  methodName = "func_n_#{funcID}"
+
+  self.class.define_method(methodName) do |node|
+    eval(cleanedCode)
   end
-=end
 
-  # 出力するコードを配列に追加
-  $function_ruby << {
-    id: funcID,
-    code: generatedFunction.lines.map(&:rstrip).join("\n")
-  }
+  puts "# #{methodName}"
+  puts "def #{methodName}(data)"
+  puts "  #{cleanedCode}"
+  puts "end"
 end
 
 def generate_node(node)
@@ -208,7 +206,9 @@ def generate_node(node)
     gen_constant(node)
   when "GPIO-Read"
     gen_gpioread(node)
-  when "GPIO-Write-1"
+  when "ADC"
+    gen_adc(node)
+  when "GPIO-Write"
     gen_gpiowrite(node)
   when "PWM"
     gen_pwm(node)
@@ -266,7 +266,6 @@ puts "#"
 # data
 puts "injects = #{$injects.pretty_inspect}"
 puts "nodes = #{$nodes.pretty_inspect}"
-puts "function_ruby = #{$function_ruby.pretty_inspect}"
 puts
 
 # dispatcher
