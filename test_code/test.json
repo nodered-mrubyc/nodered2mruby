@@ -1,0 +1,171 @@
+[
+    {
+        "id": "5c441412c62ce51a",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "v": "",
+                "vt": "num"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 100,
+        "wires": [
+            [
+                "75a7766877fce722"
+            ]
+        ]
+    },
+    {
+        "id": "e37bd6bc9a5b437a",
+        "type": "Constant",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "C": "1",
+        "x": 880,
+        "y": 40,
+        "wires": [
+            [
+                "5ce7b0fb6213fbcb"
+            ]
+        ]
+    },
+    {
+        "id": "ae837cb671a15359",
+        "type": "Constant",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "C": "1",
+        "x": 880,
+        "y": 160,
+        "wires": [
+            [
+                "d5557c5df79345e8"
+            ]
+        ]
+    },
+    {
+        "id": "5ce7b0fb6213fbcb",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "targetPort": "0",
+        "x": 1090,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "d5557c5df79345e8",
+        "type": "LED",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "targetPort": "1",
+        "x": 1090,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "0145da101f49f3b1",
+        "type": "Constant",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "C": "0",
+        "x": 880,
+        "y": 120,
+        "wires": [
+            [
+                "5ce7b0fb6213fbcb"
+            ]
+        ]
+    },
+    {
+        "id": "101b422731f9c97e",
+        "type": "Constant",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "C": "0",
+        "x": 880,
+        "y": 80,
+        "wires": [
+            [
+                "d5557c5df79345e8"
+            ]
+        ]
+    },
+    {
+        "id": "dc65b1b6c9db1729",
+        "type": "switch",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "lte",
+                "v": "22",
+                "vt": "num"
+            },
+            {
+                "t": "gt",
+                "v": "23",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 690,
+        "y": 100,
+        "wires": [
+            [
+                "e37bd6bc9a5b437a",
+                "101b422731f9c97e"
+            ],
+            [
+                "0145da101f49f3b1",
+                "ae837cb671a15359"
+            ]
+        ]
+    },
+    {
+        "id": "d4daf5fbe8b2ab52",
+        "type": "function-Code",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "func": "celsius = (data * 1000 - 600)/10.0 \nreturn celsius",
+        "x": 530,
+        "y": 100,
+        "wires": [
+            [
+                "dc65b1b6c9db1729"
+            ]
+        ]
+    },
+    {
+        "id": "75a7766877fce722",
+        "type": "ADC",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "targetPort_ADC": "6",
+        "x": 370,
+        "y": 100,
+        "wires": [
+            [
+                "d4daf5fbe8b2ab52"
+            ]
+        ]
+    }
+]

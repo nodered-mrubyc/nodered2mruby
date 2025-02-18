@@ -1,47 +1,67 @@
+# func_n_d4daf5fbe8b2ab52
+def func_n_d4daf5fbe8b2ab52(data)
+  result = (data * 1000 - 600)/10.0
+return result
+end
 #
 # by nodered2mruby code generator
 #
-injects = [{:id=>:n_d911d0ee4b7a3d4d,
+injects = [{:id=>:n_5c441412c62ce51a,
   :delay=>0.1,
   :repeat=>2.0,
-  :payload=>"1.0",
-  :wires=>[:n_e8c32ffc8889f978]}]
-nodes = [{:id=>:n_97a99168f5aa7444, :type=>:debug, :wires=>[]},
- {:id=>:n_e8c32ffc8889f978,
+  :payload=>"",
+  :wires=>[:n_75a7766877fce722]}]
+nodes = [{:id=>:n_e37bd6bc9a5b437a,
+  :type=>:constant,
+  :C=>1,
+  :wires=>[:n_5ce7b0fb6213fbcb]},
+ {:id=>:n_ae837cb671a15359,
+  :type=>:constant,
+  :C=>1,
+  :wires=>[:n_d5557c5df79345e8]},
+ {:id=>:n_5ce7b0fb6213fbcb, :type=>:gpio, :targetPort=>0, :wires=>[]},
+ {:id=>:n_d5557c5df79345e8, :type=>:gpio, :targetPort=>1, :wires=>[]},
+ {:id=>:n_0145da101f49f3b1,
+  :type=>:constant,
+  :C=>0,
+  :wires=>[:n_5ce7b0fb6213fbcb]},
+ {:id=>:n_101b422731f9c97e,
+  :type=>:constant,
+  :C=>0,
+  :wires=>[:n_d5557c5df79345e8]},
+ {:id=>:n_dc65b1b6c9db1729,
+  :type=>:switch,
+  :property=>"payload",
+  :propertyType=>"msg",
+  :rules=>
+   [{:t=>"lte", :v=>"22", :vt=>"num", :v2=>"22", :v2t=>"num", :case=>nil},
+    {:t=>"gt", :v=>"23", :vt=>"str", :v2=>"23", :v2t=>"str", :case=>nil}],
+  :checkall=>"true",
+  :repair=>false,
+  :wires=>
+   [:n_e37bd6bc9a5b437a,
+    :n_101b422731f9c97e,
+    :n_0145da101f49f3b1,
+    :n_ae837cb671a15359]},
+ {:id=>:n_d4daf5fbe8b2ab52,
   :type=>:function_code,
-  :func=>"data = msg \n" + "data = data + 1\n" + "return data",
-  :wires=>[:n_97a99168f5aa7444]}]
+  :func=>"celsius = (data * 1000 - 600)/10.0 \n" + "return celsius",
+  :wires=>[:n_dc65b1b6c9db1729]},
+ {:id=>:n_75a7766877fce722,
+  :type=>:ADC,
+  :targetPort_ADC=>6,
+  :wires=>[:n_d4daf5fbe8b2ab52]}]
+
 
 # global variable
-$definedFunctions = {}
 $gpioArray = {}
+$adcArray = {}
 $pwmArray = {}
 $pinstatus = {}
 $i2cArray = {}
 
-module Parsefunction
-  def self.parse(funcString)
-    # サポートする簡単な操作のみを許可
-    if funcString.match(/^\s*data\s*=\s*data\s*(\+|\-|\*|\/)\s*\d+\s*$/)
-      operator, operand = funcString.match(/(\+|\-|\*|\/)\s*(\d+)/).captures
-      operand = operand.to_f
-      case operator
-      when "+"
-        ->(data) { data.to_f + operand }
-      when "-"
-        ->(data) { data.to_f - operand }
-      when "*"
-        ->(data) { data.to_f * operand }
-      when "/"
-        ->(data) { data.to_f / operand }
-      end
-    else
-      raise ArgumentError, "Unsupported function string: #{func_str}"
-    end
-  end
-end
-
 # Myindex class
+# $queue内のノードIDと合致するindex番号を調べる
 class Myindex
   def myindex(nodes, msg)
     i = 0
@@ -57,19 +77,8 @@ class Myindex
   end
 end
 
-class Makemethod
-  def self.define_methods(functions)
-    functions.each do |name, code|
-      define_method(name) do
-        result = "Code: #{code}"
-        result
-      end
-    end
-  end
-end
-
 # GPIO Class
-#=begin
+=begin
 class GPIO
   attr_accessor :pinNum
 
@@ -81,7 +90,24 @@ class GPIO
     puts "Writing #{value} to GPIO #{@pinNum}"
   end
 end
-#=end
+=end
+
+# ADC Class
+=begin
+class ADC
+  attr_accessor :pinNum
+
+  def initialize(pinNum)
+    @pinNum = pinNum
+  end
+
+  def read(value)
+    puts "Reading #{value} to GPIO #{@pinNum}"
+    adcValue = value
+  end
+end
+=end
+
 
 #
 # node dependent implementation
@@ -93,7 +119,6 @@ def process_node_gpio(node, msg)
   targetPort = node[:targetPort]
   payLoad = msg[:payload]
   sleepTime = msg[:repeat]
-  puts "sleep = #{sleepTime}"
 
   if $gpioArray[targetPort].nil?
     gpio = GPIO.new(targetPort)
@@ -104,10 +129,11 @@ def process_node_gpio(node, msg)
   else
     gpio = $gpioArray[targetPort]
     gpioValue = $pinstatus[targetPort]
-    puts "Reusing pinMode for pin #{gpio}"
+    puts "Reusing pinMode for pin #{gpio}, #{gpioValue}"
   end
 
   puts "Current pin state before payload check, gpioValue: #{gpioValue}"
+
 
   if payLoad != ""
     if payLoad == 0
@@ -159,40 +185,33 @@ end
 
 # ADC
 def process_node_ADC(node, msg)
-  pinNum = node[:targetPort_ADC]
+  puts "Do ADC"
+  #pinNum = node[:targetPort]
+  targetPortADC = node[:targetPort_ADC]
 
-  targetPort = case pinNum
-               when "0" then 0
-               when "1" then 1
-               when "2" then 5
-               when "3" then 6
-               when "4" then 7
-               when "5" then 8
-               when "6" then 19
-               when "7" then 20
-               else
-                nil
-               end
-
-  if targetPort.nil?
+  puts targetPortADC
+  if targetPortADC.nil?
     puts "No GPIO configured for pin"
   end
 
-  if $gpioArray[targetPort].nil?
-    gpio = GPIO.new(targetPort)
-    $gpioArray[targetPort] = gpio
-    puts "Setting up pinMode for pin #{targetPort}"
+  if $adcArray[targetPortADC].nil?
+    adc = ADC.new(targetPortADC)
+    $adcArray[targetPortADC] = adc
+    puts "Setting up pinMode for pin #{targetPortADC}"
   else
-    gpio = $gpioArray[targetPort]
-    puts "Reusing pinMode for pin #{targetPort}"
+    adc = $adcArray[targetPortADC]
+    puts "Reusing pinMode for pin #{targetPortADC}"
   end
 
-  gpio.start
-  adcValue = gpio.read_v
-  gpio.stop
+  puts "start"
+  #adc.start
+  #adcValue_v = adc.read_v
+  #puts "adc_v = #{adcValue_v}"
+  adcValue = adc.read(2.0)
+  puts "adc =#{adcValue}"
 
   if adcValue.nil?
-    puts "No GPIO configured for pin #{targetPort}"
+    puts "No GPIO configured for pin #{targetPortADC}"
   else
     msg[:payload] = adcValue
     node[:wires].each do |nextNodeId|
@@ -325,6 +344,7 @@ def process_node_Button(node, msg)
   end
 end
 
+# Constant
 def process_node_Constant(node, msg)
   constantValue = node[:C]
   puts "constant = #{constantValue}"
@@ -335,32 +355,19 @@ def process_node_Constant(node, msg)
   end
 end
 
-#Switch
+# Switch
 def process_node_switch(node, msg)
   puts "node[:rules] = #{node[:rules]}"
 
   rules = node[:rules]
-  payLoad = msg[:payload]
+  payLoad = msg[:payload].to_f
   puts "payLoad = #{payLoad}"
 
 
   rules.each_with_index do |rule, index|
-    value = rule[:v]
-    value2 = rule[:v2]
+    value = rule[:v].to_f
+    value2 = rule[:v2].to_f
     switchCase = rule[:case]
-
-    case rule[:vt]
-    when "str"
-      puts "stirng"
-      value = rule[:v].to_s
-    when "num"
-      puts "num"
-      value = if rule[:v].to_s.include?(".")
-        rule[:v].to_f
-      else
-        rule[:v].to_i
-      end
-    end
 
     puts "value = #{value}, value.class = #{value.class}"
 
@@ -499,124 +506,27 @@ def process_node_switch(node, msg)
 
 end
 
-#function-ruby
+# function-ruby
+# sendメソッドでは実行できない
 def process_node_function_code(node, msg)
-  function_name = node[:id]
+  function_name = "func_#{node[:id]}".to_sym
+  puts function_name.class
+
   function_code = node[:func]
-  result = nil
-  data = msg[:payload]
+  data = msg[:payload].to_f
 
-  if function_code.is_a?(String)
-    function_code_proc = Parsefunction.parse(function_code)
-  elsif function_code.is_a?(Proc)
-    function_code_proc = function_code
-  else
-    raise ArgumentError, "func must be a Proc or a String"
-  end
-  # メソッドを動的に定義
-  unless respond_to?(function_name)
-    self.class.define_method(function_name) do |data|
-      function_code_proc.call(data)
-    end
-    puts "メソッド '#{function_name}' を作成しました。"
-  else
-    puts "メソッド '#{function_name}' は既に存在しています。"
-  end
-  # メソッドの呼び出し
-  if respond_to?(function_name)
-    result = send(function_name, data)
-    puts "メソッド '#{function_name}' を実行しました。結果: #{result}"
-  else
-    puts "メソッド '#{function_name}' が見つかりません。"
-  end
+  puts "Do function"
 
-  # 次のノードへ結果を送信
-  node[:wires].each do |next_node_id|
-    next_msg = { id: next_node_id, payload: result }
-    $queue << next_msg
-  end
-end
-=begin
-  def process_node_function_code(node, msg)
-    functions = [
-      funcId = node[:id],
-      funcCode = <<~CODE
-        #{node[:func]}
-      CODE
-    ]
-    result = nil
-
-    Makemethod.define_methods(functions)
-
-    result = Makemethod.new.send(node[:id], msg[:payload])
-    puts "Result: #{result}"
-
-  =begin
-    #funcId = node[:id]
-    puts node[:func]
-    #funcCode = node[:func]
-    data = msg[:payload].to_f
-    funcCode = <<~CODE
-      #{node[:func]}
-    CODE
-  =end
-  =begin
-      function_name = node[:id]
-      function_code = node[:func]
-      result = nil
-      data = msg[:payload]
-
-      # 文字列を解析してProcに変換
-      if function_code.is_a?(String)
-        function_code_proc = Parsefunction.parse(function_code)
-      elsif function_code.is_a?(Proc)
-        function_code_proc = function_code
-      else
-        raise "func must be a Proc or a String"
-      end
-
-      # メソッドを動的に定義
-      unless respond_to?(function_name)
-        define_singleton_method(function_name) do |data|
-          function_code_proc.call(data)
-        end
-        puts "メソッド '#{function_name}' を作成しました。"
-      else
-        puts "メソッド '#{function_name}' は既に存在しています。"
-      end
-
-      # メソッドの呼び出し
-      if respond_to?(function_name)
-        result = send(function_name, data)
-        puts "メソッド '#{function_name}' を実行しました。結果: #{result}"
-      else
-        puts "メソッド '#{function_name}' が見つかりません。"
-      end
-  =end
-  =begin
-  function_name = "func_#{node[:id]}"
-  function_code = node[:func]
-  result = nil
-  data = msg[:payload]
-
-  unless $definedFunctions.key?(function_name)
-    $definedFunctions[function_name] = Proc.new do |data|
-      eval(function_code)
-    end
-  end
-
-  result = $definedFunctions[function_name].call(data)
-
-  result = $definedFunctions[function_name].call
+  result = send("func_n_d4daf5fbe8b2ab52", data)
   puts "result = #{result}"
 
-  # 次のノードへ結果を送信
+  #result = (data * 1000 - 600)/10.0
+
   node[:wires].each do |next_node_id|
     next_msg = { id: next_node_id, payload: result }
     $queue << next_msg
   end
 end
-=end
 
 #
 # inject
@@ -688,15 +598,11 @@ while true do
   indexer = Myindex.new()
   msg = $queue.first
   if msg then
-    puts "$queue = #{$queue}"
     $queue.delete_at 0
-    puts "$queue = #{$queue}"
     #idx = nodes.myindex { |v| v[:id] == msg[:id] }
     idx = indexer.myindex(nodes, msg)
-    puts "node is #{nodes[idx]}"
     if idx then
       process_node nodes[idx], msg
-      puts "-----------------------------------------------------------------------------------------"
     else
       puts "node not found: #{msg[:id]}"
     end
