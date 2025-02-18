@@ -40,5 +40,5 @@ ruby nodered2mruby.rb ./sample.json > ./sample.rb
     - 指定したGPIOピンに対してプルアップ/プルダウンの設定を行う。
 - Constant
     - 設定したデータを後続ノードに送信する。
-- function-ruby
+- function-ruby(未実装)
     - ユーザが記述したコードを関数として定義し、実行する。
