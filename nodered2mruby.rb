@@ -63,12 +63,12 @@ end
 
 #GPIO
 def gen_gpio(node)
-  data = {:id => id2sym(node[:id]),
+  ret = {:id => id2sym(node[:id]),
           :type => :gpio,
           :targetPort => node[:targetPort].to_i,
           :wires => idarray2symarray(node[:wires])
          }
-  $nodes << data
+  return ret
 end
 
 #Constant
@@ -273,6 +273,7 @@ puts
 
 # check handler
 nodes_distinct = ($nodes.collect do |node| node[:type] end).uniq.sort
+nodes_distinct.insert(0, :init)
 nodes_distinct << :main
 
 puts "#"
