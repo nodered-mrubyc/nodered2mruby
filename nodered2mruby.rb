@@ -8,7 +8,6 @@ require 'pp'
 #
 
 $injects = []
-$nodes = []
 $function_ruby = []
 
 def id2sym(str)
@@ -21,27 +20,27 @@ end
 
 #inject
 def gen_inject(node)
-  data = {:id => id2sym(node[:id]),
+  ret = {:id => id2sym(node[:id]),
           :delay => node[:onceDelay].to_f,
           :repeat => node[:repeat].to_f,
           :payload => node[:payload],
           :wires => idarray2symarray(node[:wires][0])
-         }
-  $injects << data
+  }
+  return ret
 end
 
 #debug
 def gen_debug(node)
-  data = {:id => id2sym(node[:id]),
+  ret = {:id => id2sym(node[:id]),
           :type => :debug,
           :wires => idarray2symarray(node[:wires])
          }
-  $nodes << data
+  return ret
 end
 
 #Switch
 def gen_switch(node)
-  data = {:id => id2sym(node[:id]),
+  ret = {:id => id2sym(node[:id]),
           :type => :switch,
           :property => node[:property],
           :propertyType => node[:propertyType],
@@ -59,7 +58,7 @@ def gen_switch(node)
           :repair => node[:repair],
           :wires => node[:wires].flat_map { |wire| idarray2symarray(wire) }
          }
-  $nodes << data
+  return ret
 end
 
 #GPIO
@@ -74,12 +73,12 @@ end
 
 #Constant
 def gen_constant(node)
-  data = {:id => id2sym(node[:id]),
+  ret = {:id => id2sym(node[:id]),
           :type => :constant,
           :C => node[:C].to_i,
           :wires => idarray2symarray(node[:wires][0])
          }
-  $nodes << data
+  return ret
 end
 
 #GPIO-Read
@@ -196,34 +195,36 @@ def gen_function_ruby(node)
   puts "end"
 end
 
+# ノードの情報をhashで出力する
 def generate_node(node)
   case node[:type]
   when "inject"
-    gen_inject(node)
+    $injects << gen_inject(node)
+    return nil
   when "switch"
-    gen_switch(node)
+    return gen_switch(node)
   when "Constant"
-    gen_constant(node)
+    return gen_constant(node)
   when "GPIO-Read"
-    gen_gpioread(node)
+    return gen_gpioread(node)
   when "ADC"
-    gen_adc(node)
+    return gen_adc(node)
   when "GPIO-Write"
-    gen_gpiowrite(node)
+    return gen_gpiowrite(node)
   when "PWM"
-    gen_pwm(node)
+    return gen_pwm(node)
   when "I2C"
-    gen_i2c(node)
+    return gen_i2c(node)
   when "LED"
-    gen_gpio(node)
+    return gen_gpio(node)
   when "Parameter-Set"
-    gen_parameter(node)
+    return gen_parameter(node)
   when "function-Code"
-    gen_function_ruby(node)
+    return gen_function_ruby(node)
   when "Button"
-    gen_button(node)
+    return gen_button(node)
   when "debug"
-    gen_debug(node)
+    return gen_debug(node)
   when "info"
   # nothing
   when "comment"
@@ -234,6 +235,7 @@ def generate_node(node)
     puts "# #{node[:type]} is not supported, #{node}"
   end
 end
+
 #
 # main
 #
@@ -245,14 +247,15 @@ unless json_filename then
   exit
 end
 
-json_data = ""
-File.open(json_filename) do |f|
-  json_data = JSON.parse(f.read, symbolize_names: true)
+$nodes = JSON.parse(File.read(json_filename), symbolize_names: true).collect do |node|
+  generate_node(node)
 end
+$nodes.delete_if { |node| node.nil? }
 
-json_data.each do |node|
-  generate_node node
-end
+$injects = $injects.map { |inject|
+  inject[:cnt] = inject[:repeat]
+  inject
+}
 
 #
 # mruby code generation
@@ -268,7 +271,18 @@ puts "injects = #{$injects.pretty_inspect}"
 puts "nodes = #{$nodes.pretty_inspect}"
 puts
 
-# dispatcher
-File.open("dispatcher.rb") do |f|
-  puts f.read
+# check handler
+nodes_distinct = ($nodes.collect do |node| node[:type] end).uniq.sort
+nodes_distinct << :main
+
+puts "#"
+puts "# handler"
+puts "## #{nodes_distinct.join(", ")}"
+puts "#"
+
+
+nodes_distinct.each do |type|
+  handler_filename = "handler/#{type}.rb"
+  puts File.read(handler_filename)
 end
+

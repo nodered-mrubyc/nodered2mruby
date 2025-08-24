@@ -1,0 +1,76 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "16e885d7ef12e814",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 270,
+        "y": 260,
+        "wires": [
+            [
+                "fac126da255e801c"
+            ]
+        ]
+    },
+    {
+        "id": "a93191e7e9a25857",
+        "type": "debug",
+        "z": "f6f2187d.f17ca8",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "fac126da255e801c",
+        "type": "Constant",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "C": "1",
+        "x": 460,
+        "y": 360,
+        "wires": [
+            [
+                "a93191e7e9a25857"
+            ]
+        ]
+    },
+    {
+        "id": "917e896eba39d584",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-mrubyc-rboard": "1.0.2"
+        }
+    }
+]

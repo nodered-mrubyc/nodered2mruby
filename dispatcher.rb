@@ -403,13 +403,17 @@ def process_inject(inject)
   }
 end
 
+def process_node_debug(node, msg)
+  puts "Debug: #{msg[:payload]}"
+end
+
 #
 # node
 #
 def process_node(node,msg)
   case node[:type]
   when :debug
-    puts "msg[:payload] = #{msg[:payload]}"
+    process_node_debug node, msg
   when :switch
     process_node_switch node, msg
   when :function_code
